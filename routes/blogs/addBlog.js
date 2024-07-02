@@ -1,4 +1,5 @@
 const Blog = require("../../models/Blog");
+const User = require("../../models/User");
 
 async function AddBlog(req, res) {
   try {
@@ -8,7 +9,7 @@ async function AddBlog(req, res) {
     }
 
     // Assuming req.user contains the authenticated user's information including username
-    const { username } = req.user.username;
+    const username = User.username
 
     const blog = new Blog({
       author: username, // Set author as username
