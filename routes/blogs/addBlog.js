@@ -8,7 +8,7 @@ async function AddBlog(req, res) {
     }
 
     // Assuming req.user contains the authenticated user's information including username
-    const { username } = req.user;
+    const { username } = req.user.username;
 
     const blog = new Blog({
       author: username, // Set author as username
