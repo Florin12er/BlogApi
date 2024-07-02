@@ -1,36 +1,43 @@
 const express = require("express");
 const app = express();
 const User = require("./models/User.js");
-const methodOverride = require('method-override');
+const cors = require("cors");
+const methodOverride = require("method-override");
 const mongoose = require("mongoose");
 const passport = require("passport");
 const flash = require("express-flash");
 const session = require("express-session");
 const initializePassport = require("./config/passport-config.js");
 
+const corsOptions = {
+  origin: "http://localhost:5173",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+app.use(cors(corsOptions));
 // Load environment variables
 require("dotenv").config();
 
 // Initialize Passport
 initializePassport(
-    passport,
-    async (email) => await User.findOne({ email }),
-    async (id) => await User.findById(id),
+  passport,
+  async (email) => await User.findOne({ email }),
+  async (id) => await User.findById(id),
 );
 
 // Middleware setup
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(methodOverride('_method'));
+app.use(methodOverride("_method"));
 app.use(flash());
 
 // Session middleware should be used before passport.session()
 app.use(
-    session({
-        secret: process.env.SESSION_SECRET,
-        resave: false,
-        saveUninitialized: false,
-    }),
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+  }),
 );
 
 // Passport middleware
@@ -56,6 +63,5 @@ db.once("open", () => console.log("Connected to Mongoose"));
 // Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
-
