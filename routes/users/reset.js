@@ -15,11 +15,9 @@ async function requestPasswordReset(req, res) {
     user.resetCode = hashedResetCode;
     // Set resetCodeExpires to one hour from now
     const resetCodeExpires = new Date(Date.now() + 3600000);
-    // Format resetCodeExpires to "MM/DD/YYYY" format
-    const month = String(resetCodeExpires.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(resetCodeExpires.getUTCDate()).padStart(2, '0');
-    const year = resetCodeExpires.getUTCFullYear();
-    user.resetCodeExpires = `${month}/${day}/${year}`;
+    // Format the date as "day/month/year"
+    const options = { day: 'numeric', month: 'numeric', year: 'numeric' };
+    user.resetCodeExpires = resetCodeExpires.toLocaleDateString(undefined, options);
     await user.save();
     await sendResetCode(email, resetCode);
     return res.status(200).json({ message: "Reset code sent to your email" });
