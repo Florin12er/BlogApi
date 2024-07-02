@@ -9,7 +9,6 @@ const jwt = require("jsonwebtoken");
 const initializePassport = require("./config/passport-config.js");
 
 const corsOptions = {
-  origin: "*",
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true,
   allowedHeaders: ["Content-Type", "Authorization"],
