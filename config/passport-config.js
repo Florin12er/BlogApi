@@ -6,29 +6,34 @@ const User = require("../models/User");
 
 function initialize(passport) {
   passport.use(
-    new LocalStrategy({ usernameField: "email" }, async (email, password, done) => {
-      try {
-        const user = await User.findOne({ email });
+    new LocalStrategy(
+      { usernameField: "email" },
+      async (email, password, done) => {
+        try {
+          const user = await User.findOne({ email });
 
-        if (!user) {
-          return done(null, false, { message: "No user with that email" });
+          if (!user) {
+            return done(null, false, { message: "No user with that email" });
+          }
+
+          if (!user.password) {
+            return done(null, false, {
+              message: "User registered with OAuth only",
+            });
+          }
+
+          const isMatch = await bcrypt.compare(password, user.password);
+
+          if (isMatch) {
+            return done(null, user);
+          } else {
+            return done(null, false, { message: "Password incorrect" });
+          }
+        } catch (error) {
+          return done(error);
         }
-
-        if (!user.password) {
-          return done(null, false, { message: "User registered with OAuth only" });
-        }
-
-        const isMatch = await bcrypt.compare(password, user.password);
-
-        if (isMatch) {
-          return done(null, user);
-        } else {
-          return done(null, false, { message: "Password incorrect" });
-        }
-      } catch (error) {
-        return done(error);
-      }
-    })
+      },
+    ),
   );
 
   passport.use(
@@ -36,7 +41,8 @@ function initialize(passport) {
       {
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: "/user/auth/google/callback",
+        callbackURL:
+          "https://blogapi-production-fb2f.up.railway.app/user/auth/google/callback",
       },
       async (accessToken, refreshToken, profile, done) => {
         const { id, emails, displayName } = profile;
@@ -63,8 +69,8 @@ function initialize(passport) {
         } catch (error) {
           done(error);
         }
-      }
-    )
+      },
+    ),
   );
 
   passport.use(
@@ -72,13 +78,16 @@ function initialize(passport) {
       {
         clientID: process.env.GITHUB_CLIENT_ID,
         clientSecret: process.env.GITHUB_CLIENT_SECRET,
-        callbackURL: "/user/auth/github/callback",
+        callbackURL:
+          "https://blogapi-production-fb2f.up.railway.app/user/auth/github/callback",
       },
       async (accessToken, refreshToken, profile, done) => {
         const { id, emails, username } = profile;
 
         try {
-          let user = await User.findOne({ email: emails ? emails[0].value : "" });
+          let user = await User.findOne({
+            email: emails ? emails[0].value : "",
+          });
 
           if (user) {
             if (!user.githubId) {
@@ -99,8 +108,8 @@ function initialize(passport) {
         } catch (error) {
           done(error);
         }
-      }
-    )
+      },
+    ),
   );
 
   passport.serializeUser((user, done) => {
@@ -118,4 +127,3 @@ function initialize(passport) {
 }
 
 module.exports = initialize;
-
