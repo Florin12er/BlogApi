@@ -1,5 +1,4 @@
-;const Blog = require("../../models/Blog");
-const { checkAuthenticated } = require("../../middleware/checks");
+const Blog = require("../../models/Blog");
 
 async function AddBlog(req, res) {
   try {
@@ -23,9 +22,9 @@ async function AddBlog(req, res) {
 
     res.status(201).json({ message: "Blog added successfully", blog: result });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 }
 
 module.exports = AddBlog;
-

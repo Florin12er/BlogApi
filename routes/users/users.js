@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const passport = require("passport");
-const jwt = require('jsonwebtoken'); // Add this line
+const jwt = require('jsonwebtoken');
 const PostLogin = require("./login.js");
 const { PostRegister } = require("./register.js");
 const User = require("../../models/User.js");
@@ -25,8 +25,23 @@ const authenticateJWT = (req, res, next) => {
     next();
   });
 };
+
+// Add this function
+const getUserById = async (id) => {
+  try {
+    const user = await User.findById(id);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    return user;
+  } catch (error) {
+    console.error(error);
+    throw new Error('Failed to retrieve user information');
+  }
+};
+
 router.get("/", authenticateJWT, ShowAllUsers);
-router.post("/register", PostRegister); // Remove authenticateJWT middleware
+router.post("/register", PostRegister); 
 router.post("/login", PostLogin);
 router.delete("/logout", LogOut);
 router.delete("/delete", authenticateJWT, DeleteUser);
@@ -67,4 +82,17 @@ router.get(
     res.json({ token });
   },
 );
+
+// Add a new route to get a user by ID
+router.get("/user/:id", authenticateJWT, async (req, res) => {
+  try {
+    const id = req.params.id;
+    const user = await getUserById(id);
+    res.status(200).json({ user });
+  } catch (error) {
+    console.error(error);
+    res.status(404).json({ error: "User not found" });
+  }
+});
+
 module.exports = router;
