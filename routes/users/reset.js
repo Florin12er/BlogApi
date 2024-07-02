@@ -25,7 +25,6 @@ async function requestPasswordReset(req, res) {
     return res.status(500).json({ error: "Failed to send reset code" });
   }
 }
-
 async function Reset(req, res) {
   const { email, resetCode, newPassword } = req.body;
   try {
@@ -36,7 +35,8 @@ async function Reset(req, res) {
     if (user.resetCodeExpires < Date.now()) {
       return res.status(400).json({ error: "Reset code has expired" });
     }
-    const isCodeValid = bcrypt.compare(resetCode, user.resetCode);
+    const hashedResetCode = await bcrypt.hash(resetCode, 10); // Hash the resetCode from the request body
+    const isCodeValid = bcrypt.compare(hashedResetCode, user.resetCode); // Compare the hashed resetCode with the user.resetCode
     if (!isCodeValid) {
       return res.status(400).json({ error: "Invalid email or reset code" });
     }
