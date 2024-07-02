@@ -1,14 +1,14 @@
 const User = require('../../models/User'); // Adjust path as necessary
 
 // GET all users
-async function ShowAllUsers(req, res) {
+async function showAllUsers(req, res, next) {
   try {
     const users = await User.find();
     res.json(users);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err); // Log the error
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 }
 
-module.exports = ShowAllUsers;
-
+module.exports = showAllUsers;

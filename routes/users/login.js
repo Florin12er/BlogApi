@@ -1,25 +1,20 @@
 const passport = require("passport");
 const User = require("../../models/User"); // Adjust path as necessary
+const jwt = require("jsonwebtoken");
 
 function PostLogin(req, res, next) {
   passport.authenticate("local", (err, user, info) => {
     if (err) {
-      return res
-        .status(500)
-        .json({ error: "An error occurred during authentication" });
+      console.error(err); // Log the error to the console
+      return res.status(500).json({ error: "Authentication failed", details: err.message });
     }
     if (!user) {
-      return res
-        .status(401)
-        .json({ error: info.message || "Authentication failed" });
+      return res.status(401).json({ error: info.message || "Authentication failed" });
     }
-    req.logIn(user, (err) => {
-      if (err) {
-        return res.status(500).json({ error: "Failed to log in user" });
-      }
-      return res.status(200).json({ message: "Logged in successfully", user });
+    const token = jwt.sign({ sub: user.id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
     });
+    return res.status(200).json({ message: "Logged in successfully", token });
   })(req, res, next);
 }
-
 module.exports = PostLogin;

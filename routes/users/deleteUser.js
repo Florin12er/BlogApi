@@ -10,8 +10,6 @@ async function DeleteUser(req, res) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    // Optionally, you may want to perform additional checks here, such as confirming the user's identity
-
     // Delete the user from the database
     await User.findByIdAndDelete(user._id);
 
@@ -23,4 +21,6 @@ async function DeleteUser(req, res) {
     return res.status(500).json({ error: "Failed to delete account" });
   }
 }
-module.exports = DeleteUser
+
+module.exports = DeleteUser;
+
