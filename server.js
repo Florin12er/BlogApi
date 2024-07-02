@@ -7,6 +7,7 @@ const mongoose = require("mongoose");
 const passport = require("passport");
 const jwt = require("jsonwebtoken");
 const initializePassport = require("./config/passport-config.js");
+const errorhandler = require("errorhandler");
 
 const corsOptions = {
   origin: "http://localhost:5173",
@@ -35,16 +36,25 @@ app.use(methodOverride("_method"));
 app.use(passport.initialize());
 
 // Routes
-const Users = require("./routes/users/users.js");
-const Blogs = require("./routes/blogs/blogs.js");
-app.use("/user", Users);
-app.use("/blog", Blogs);
+const usersRouter = require("./routes/users/users.js");
+const blogsRouter = require("./routes/blogs/blogs.js");
+app.use("/user", usersRouter);
+app.use("/blog", blogsRouter);
+
+// Error handling middleware
+app.use(errorhandler());
 
 // MongoDB connection
 const dbUrl = process.env.DATABASEURL;
-mongoose.connect(dbUrl);
+mongoose.connect(dbUrl, { useNewUrlParser: true, useUnifiedTopology: true });
 const db = mongoose.connection;
-db.on("error", (error) => console.error(error));
+db.on("error", (error) => {
+  console.error("Database connection error:", error);
+  // Retry connecting to the database after 5 seconds
+  setTimeout(() => {
+    mongoose.connect(dbUrl, { useNewUrlParser: true, useUnifiedTopology: true });
+  }, 5000);
+});
 db.once("open", () => console.log("Connected to Mongoose"));
 
 // Start server
