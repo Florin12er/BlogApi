@@ -9,10 +9,11 @@ function LogOut(req, res) {
         console.log(err);
         return res.status(500).json({ error: "Failed to log out" });
       }
-      res.clearCookie("connect.sid"); // Clear the session cookie
-      res.json({ message: "Log out successfully" }); // Redirect to home page or desired route after logout
+      res.clearCookie("connect.sid", { path: '/' }); // Ensure path is correctly set
+      return res.json({ message: "Logged out successfully" });
     });
   });
 }
 
 module.exports = LogOut;
+
