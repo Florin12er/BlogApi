@@ -48,7 +48,7 @@ router.post("/request-reset", requestPasswordReset);
 
 // Route to check if the user is authenticated (protected)
 router.get("/auth/status", checkAuthenticated, (req, res) => {
-  res.status(200).json({ authenticated: true, user: req.user });
+  res.status(200).json({ user: req.user });
 });
 
 
