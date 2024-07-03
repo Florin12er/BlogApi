@@ -13,6 +13,7 @@ const corsOptions = {
   origin: [
     "https://blog-maker-two.vercel.app",
     "http://localhost:5174",
+    "http://localhost:3000",
     "https://blogs-nine-steel.vercel.app",
     "https://blogapi-production-fb2f.up.railway.app",
   ],

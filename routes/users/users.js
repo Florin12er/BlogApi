@@ -42,23 +42,24 @@ router.get("/auth/status", checkAuthenticated, (req, res) => {
 // Google authentication routes
 router.get(
   "/auth/google",
-  passport.authenticate("google", { scope: ["profile", "email"] }),
+  passport.authenticate("google", { scope: ["profile", "email"] })
 );
+
 router.get(
   "/auth/google/callback",
   passport.authenticate("google", { failureRedirect: "/login" }),
   (req, res) => {
     const token = jwt.sign({ sub: req.user.id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
+      expiresIn: "1h"
     });
     res.json({ token });
-  },
+  }
 );
 
 // GitHub authentication routes
 router.get(
   "/auth/github",
-  passport.authenticate("github", { scope: ["user:email"] }),
+  passport.authenticate("github", { scope: ["user:email"] })
 );
 
 router.get(
@@ -66,10 +67,10 @@ router.get(
   passport.authenticate("github", { failureRedirect: "/login" }),
   (req, res) => {
     const token = jwt.sign({ sub: req.user.id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
+      expiresIn: "1h"
     });
     res.json({ token });
-  },
+  }
 );
 
 // Get user by ID (protected)
