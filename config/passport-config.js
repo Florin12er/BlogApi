@@ -93,7 +93,7 @@ function initialize(passport) {
         callbackURL:
           "https://blogapi-production-fb2f.up.railway.app/user/auth/github/callback",
       },
-      async (accessToken, refreshToken, profile, done) => {
+      async (profile, done) => {
         const { id, emails, username } = profile;
 
         try {
