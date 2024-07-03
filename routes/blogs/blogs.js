@@ -9,10 +9,12 @@ const ShowAllBlogs = require("./showAllBlogs");
 const ShowAllUserBlogs = require("./showAllBlogsUser");
 const DeleteBlog = require("./deleteBlog");
 const UpdateBlog = require("./updateBlog");
+const GetUserBlogById = require("./getBlogById");
 
 // GET all blogs route
 router.get("/", checkAuthenticated, ShowAllBlogs);
 
+router.get("/:id", checkAuthenticated, GetUserBlogById)
 // GET all blogs by user route
 router.get("/user", checkAuthenticated, ShowAllUserBlogs);
 
