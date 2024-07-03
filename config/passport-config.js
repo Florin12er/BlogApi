@@ -90,7 +90,8 @@ function initialize(passport) {
       {
         clientID: process.env.GITHUB_CLIENT_ID,
         clientSecret: process.env.GITHUB_CLIENT_SECRET,
-                callbackURL: "http://localhost:3000/user/auth/github/callback",
+        callbackURL:
+          "https://blogapi-production-fb2f.up.railway.app/user/auth/github/callback",
       },
       async (accessToken, refreshToken, profile, done) => {
         const { id, emails, username } = profile;
@@ -140,4 +141,3 @@ function initialize(passport) {
 }
 
 module.exports = initialize;
-
