@@ -10,6 +10,9 @@ const userSchema = new Schema({
   githubId: { type: String, unique: true, sparse: true },
   resetCode: { type: String },
   resetCodeExpires: { type: Date },
+  profilePicture: { type: String },
+  followers: [{ type: Schema.Types.ObjectId, ref: 'User' }], // List of followers
+  following: [{ type: Schema.Types.ObjectId, ref: 'User' }], // List of users being followed
 });
 
 userSchema.methods.isValidPassword = function (password) {
@@ -19,3 +22,4 @@ userSchema.methods.isValidPassword = function (password) {
 const User = mongoose.model("User", userSchema);
 
 module.exports = User;
+
