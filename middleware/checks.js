@@ -1,11 +1,12 @@
-;const jwt = require("jsonwebtoken");
+const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
 
 dotenv.config();
 
 function checkAuthenticated(req, res, next) {
-  if (req.headers && req.headers.authorization) {
-    const token = req.headers.authorization.split(' ')[1];
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    const token = authHeader.split(" ")[1];
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
       if (err) {
         return res.status(401).json({ error: "Unauthorized" });
@@ -17,15 +18,16 @@ function checkAuthenticated(req, res, next) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 }
+
 function checkNotAuthenticated(req, res, next) {
-  const token = req.header("Authorization").replace("Bearer ", "");
-  if (token) {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    const token = authHeader.split(" ")[1];
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      jwt.verify(token, process.env.JWT_SECRET);
       return res.status(403).json({ error: "Already authenticated" });
     } catch (err) {
       // Ignore the error and continue to the next middleware
-      next();
     }
   }
   next();
@@ -35,3 +37,4 @@ module.exports = {
   checkAuthenticated,
   checkNotAuthenticated,
 };
+

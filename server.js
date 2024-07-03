@@ -9,6 +9,10 @@ const jwt = require("jsonwebtoken");
 const initializePassport = require("./config/passport-config.js");
 
 const corsOptions = {
+  origin: [
+    "https://blog-maker-two.vercel.app",
+    "https://blogs-nine-steel.vercel.app",
+  ],
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true,
   allowedHeaders: ["Content-Type", "Authorization"],
@@ -36,6 +40,7 @@ app.use(passport.initialize());
 // Routes
 const Users = require("./routes/users/users.js");
 const Blogs = require("./routes/blogs/blogs.js");
+
 app.use("/user", Users);
 app.use("/blog", Blogs);
 

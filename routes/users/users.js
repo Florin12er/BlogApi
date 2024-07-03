@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const passport = require("passport");
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 const PostLogin = require("./login.js");
 const { PostRegister } = require("./register.js");
 const User = require("../../models/User.js");
@@ -9,90 +9,49 @@ const LogOut = require("./logout.js");
 const { Reset, requestPasswordReset } = require("./reset.js");
 const ShowAllUsers = require("./showAll.js");
 const DeleteUser = require("./deleteUser.js");
+const { checkNotAuthenticated, checkAuthenticated } = require("../../middleware/checks.js");
+const GetUserByID = require("./getUserById.js");
 
-const authenticateJWT = (req, res, next) => {
-  const authHeader = req.header("Authorization");
-  if (!authHeader) {
-    return res.status(401).send({ error: "Missing authorization header" });
-  }
-  const token = authHeader.replace("Bearer ", "");
-  if (!token) {
-    return res.status(401).send({ error: "Invalid token" });
-  }
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) return res.status(401).send({ error: "Invalid token" });
-    req.user = user;
-    next();
-  });
-};
+// Route to show all users (protected)
+router.get("/", checkAuthenticated, ShowAllUsers);
 
-// Add this function
-const getUserById = async (id) => {
-  try {
-    const user = await User.findById(id);
-    if (!user) {
-      throw new Error('User not found');
-    }
-    return user;
-  } catch (error) {
-    console.error(error);
-    throw new Error('Failed to retrieve user information');
-  }
-};
+// Register route (accessible only for unauthenticated users)
+router.post("/register", checkNotAuthenticated, PostRegister); 
 
-router.get("/", authenticateJWT, ShowAllUsers);
-router.post("/register", PostRegister); 
-router.post("/login", PostLogin);
-router.delete("/logout", LogOut);
-router.delete("/delete", authenticateJWT, DeleteUser);
+// Login route (accessible only for unauthenticated users)
+router.post("/login", checkNotAuthenticated, PostLogin);
+
+// Logout route (protected or optional check)
+router.delete("/logout", checkAuthenticated, LogOut);
+
+// Delete user route (protected)
+router.delete("/delete", checkAuthenticated, DeleteUser);
+
+// Password reset routes (public)
 router.post("/reset", Reset);
 router.post("/request-reset", requestPasswordReset);
 
-// Route to check if the user is authenticated
-router.get("/auth/status", authenticateJWT, (req, res) => {
+// Route to check if the user is authenticated (protected)
+router.get("/auth/status", checkAuthenticated, (req, res) => {
   res.status(200).json({ authenticated: true, user: req.user });
 });
 
-router.get(
-  "/auth/google",
-  passport.authenticate("google", { scope: ["profile", "email"] }),
-);
-router.get(
-  "/auth/google/callback",
-  passport.authenticate("google", { failureRedirect: "/login" }),
-  (req, res) => {
-    const token = jwt.sign({ sub: req.user.id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
-    res.json({ token });
-  },
-);
-router.get(
-  "/auth/github",
-  passport.authenticate("github", { scope: ["user:email"] }),
-);
-
-router.get(
-  "/auth/github/callback",
-  passport.authenticate("github", { failureRedirect: "/login" }),
-  (req, res) => {
-    const token = jwt.sign({ sub: req.user.id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
-    res.json({ token });
-  },
-);
-
-// Add a new route to get a user by ID
-router.get("/user/:id", authenticateJWT, async (req, res) => {
-  try {
-    const id = req.params.id;
-    const user = await getUserById(id);
-    res.status(200).json({ user });
-  } catch (error) {
-    console.error(error);
-    res.status(404).json({ error: "User not found" });
-  }
+// Google authentication routes
+router.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+router.get("/auth/google/callback", passport.authenticate("google", { failureRedirect: "/login" }), (req, res) => {
+  const token = jwt.sign({ sub: req.user.id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+  res.json({ token });
 });
 
+// GitHub authentication routes
+router.get("/auth/github", passport.authenticate("github", { scope: ["user:email"] }));
+router.get("/auth/github/callback", passport.authenticate("github", { failureRedirect: "/login" }), (req, res) => {
+  const token = jwt.sign({ sub: req.user.id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+  res.json({ token });
+});
+
+// Get user by ID (protected)
+router.get("/user/:id", checkAuthenticated, GetUserByID);
+
 module.exports = router;
+
