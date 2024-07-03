@@ -13,6 +13,7 @@ const corsOptions = {
   origin: [
     "https://blog-maker-two.vercel.app",
     "https://blogs-nine-steel.vercel.app",
+    "https://blogapi-production-fb2f.up.railway.app",
   ],
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true,
