@@ -6,10 +6,14 @@ function PostLogin(req, res, next) {
   passport.authenticate("local", (err, user, info) => {
     if (err) {
       console.error(err); // Log the error to the console
-      return res.status(500).json({ error: "Authentication failed", details: err.message });
+      return res
+        .status(500)
+        .json({ error: "Authentication failed", details: err.message });
     }
     if (!user) {
-      return res.status(401).json({ error: info.message || "Authentication failed" });
+      return res
+        .status(401)
+        .json({ error: info.message || "Authentication failed" });
     }
     const token = jwt.sign({ sub: user.id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
