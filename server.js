@@ -7,6 +7,7 @@ const mongoose = require("mongoose");
 const passport = require("passport");
 const jwt = require("jsonwebtoken");
 const initializePassport = require("./config/passport-config.js");
+const session = require("express-session");
 
 const corsOptions = {
   origin: [
@@ -33,8 +34,14 @@ initializePassport(
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(methodOverride("_method"));
+app.use(
+  session({
+    secret: "keyboard cat",
+    resave: false,
+    saveUninitialized: true,
+  }),
+);
 
-// Passport middleware
 app.use(passport.initialize());
 
 // Routes

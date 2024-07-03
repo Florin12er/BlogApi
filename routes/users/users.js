@@ -63,12 +63,13 @@ router.get(
 
 router.get(
   "/auth/github/callback",
-    passport.authenticate("github", { failureRedirect: "/login" }),
+  passport.authenticate("github", { failureRedirect: "/login" }),
   (req, res) => {
     const token = jwt.sign({ sub: req.user.id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
     res.json({ token });
+    res.redirect("/");
   },
 );
 
