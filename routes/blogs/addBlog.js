@@ -9,7 +9,7 @@ async function AddBlog(req, res) {
     }
 
     // Assuming req.user contains the authenticated user's information including username
-    const username = User.username
+    const username = req.user.username;
 
     const blog = new Blog({
       author: username, // Set author as username
@@ -29,3 +29,4 @@ async function AddBlog(req, res) {
 }
 
 module.exports = AddBlog;
+
