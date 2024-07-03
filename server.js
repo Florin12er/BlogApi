@@ -11,8 +11,8 @@ const session = require("express-session");
 
 const corsOptions = {
   origin: [
-    "*",
     "https://blog-maker-two.vercel.app",
+    "http://localhost:5174",
     "https://blogs-nine-steel.vercel.app",
     "https://blogapi-production-fb2f.up.railway.app",
   ],
