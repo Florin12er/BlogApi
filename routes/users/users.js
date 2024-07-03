@@ -74,6 +74,6 @@ router.get(
 );
 
 // Get user by ID (protected)
-router.get("/user/:id", checkAuthenticated, GetUserByID);
+router.get("/:id", checkAuthenticated, GetUserByID);
 
 module.exports = router;
