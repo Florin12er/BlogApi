@@ -69,7 +69,6 @@ router.get(
       expiresIn: "1h",
     });
     res.json({ token });
-    res.redirect("/");
   },
 );
 
