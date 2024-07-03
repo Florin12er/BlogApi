@@ -36,14 +36,13 @@ initializePassport(
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(methodOverride("_method"));
-app.use(
-  session({
-    secret: "keyboard cat",
-    resave: false,
-    saveUninitialized: true,
-  }),
-);
-
+app.use(session({
+  secret: "keyboard cat",
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: true }, // Set secure cookie if using HTTPS
+  proxy: true // Set this to true if you're behind a reverse proxy (e.g., Heroku)
+}));
 app.use(passport.initialize());
 
 // Routes
