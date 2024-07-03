@@ -10,7 +10,7 @@ const initializePassport = require("./config/passport-config.js");
 const session = require("express-session");
 
 const corsOptions = {
-  origin: "*",
+  origin: "https://blog-maker-two.vercel.app",
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true,
   allowedHeaders: ["Content-Type", "Authorization"],
