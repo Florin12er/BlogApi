@@ -10,18 +10,12 @@ const initializePassport = require("./config/passport-config.js");
 const session = require("express-session");
 
 const corsOptions = {
-  origin: (origin, callback) => {
-    if (
-      origin === undefined ||
-      origin === "https://blog-maker-two.vercel.app" ||
-      origin === "https://blogs-nine-steel.vercel.app" ||
-      origin === "https://blogapi-production-fb2f.up.railway.app"
-    ) {
-      callback(null, origin);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
+  origin: [
+    "*",
+    "https://blog-maker-two.vercel.app",
+    "https://blogs-nine-steel.vercel.app",
+    "https://blogapi-production-fb2f.up.railway.app",
+  ],
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true,
   allowedHeaders: ["Content-Type", "Authorization"],
