@@ -12,11 +12,7 @@ const session = require("express-session");
 const corsOptions = {
   origin: [
     "https://blog-maker-two.vercel.app",
-    "https://blog-maker-two.vercel.app/login",
     "https://blogs-nine-steel.vercel.app",
-    "https://accounts.google.com",
-    "https://google.com",
-    "https://github.com",
   ],
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true,
