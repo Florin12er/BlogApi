@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const blogSchema = new Schema({
-  author: { type: String, required: true }, // Added required: true to author field
+  author: { type: String }, // Added required: true to author field
   title: { type: String, required: true },
   links: { type: String, required: true },
   tags: { type: String, required: true },
