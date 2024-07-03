@@ -26,6 +26,7 @@ function initialize(passport) {
       },
     ),
   );
+
   passport.use(
     new LocalStrategy(
       { usernameField: "email" },
@@ -35,7 +36,7 @@ function initialize(passport) {
           if (!user) {
             return done(null, false, { message: "Invalid email or password" });
           }
-          const isValid = await user.isValidPassword(password);
+          const isValid = bcrypt.compare(password, user.password); // Assuming bcrypt is used for hashing passwords
           if (!isValid) {
             return done(null, false, { message: "Invalid email or password" });
           }
@@ -89,8 +90,7 @@ function initialize(passport) {
       {
         clientID: process.env.GITHUB_CLIENT_ID,
         clientSecret: process.env.GITHUB_CLIENT_SECRET,
-        callbackURL:
-          "https://blogapi-production-fb2f.up.railway.app/user/auth/github/callback",
+        callbackURL: "https://blogapi-production-fb2f.up.railway.app/user/auth/github/callback",
       },
       async (accessToken, refreshToken, profile, done) => {
         const { id, emails, username } = profile;
@@ -117,12 +117,14 @@ function initialize(passport) {
           await user.save();
           done(null, user);
         } catch (error) {
+          console.error("GitHub authentication error:", error);
           done(error);
         }
       },
     ),
   );
 
+  // Remove or leave as stubs depending on your application requirements
   passport.serializeUser((user, done) => {
     done(null, user.id);
   });
@@ -138,3 +140,4 @@ function initialize(passport) {
 }
 
 module.exports = initialize;
+
