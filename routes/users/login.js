@@ -15,10 +15,19 @@ function PostLogin(req, res, next) {
         .status(401)
         .json({ error: info.message || "Authentication failed" });
     }
-    const token = jwt.sign({ sub: user.id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
-    return res.status(200).json({ message: "Logged in successfully", token });
+
+    // Sign JWT token with user information
+    const token = jwt.sign(
+      { id: user.id, username: user.username, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    return res
+      .status(200)
+      .json({ message: "Logged in successfully", token });
   })(req, res, next);
 }
+
 module.exports = PostLogin;
+
