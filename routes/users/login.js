@@ -1,5 +1,4 @@
 const passport = require("passport");
-const User = require("../../models/User"); // Adjust path as necessary
 const jwt = require("jsonwebtoken");
 
 function PostLogin(req, res, next) {
@@ -23,9 +22,10 @@ function PostLogin(req, res, next) {
       { expiresIn: "1h" }
     );
 
+    // Include user ID in the response
     return res
       .status(200)
-      .json({ message: "Logged in successfully", token });
+      .json({ message: "Logged in successfully", token, userId: user.id });
   })(req, res, next);
 }
 
