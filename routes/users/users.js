@@ -20,7 +20,7 @@ const GetUserByID = require("./getUserById.js");
 const { Follow, Unfollow, Followers, Following } = require("./follow.js");
 const { Like, Unlike, LikeCount } = require("./Likes.js");
 const { Dislike, Undislike, DislikeCount } = require("./Dislikes.js");
-
+const Settings = require("./Setting.js");
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -138,5 +138,7 @@ router.get("/blog/:id/dislikes/count", checkAuthenticated, DislikeCount);
 
 // Get user by ID (protected)
 router.get("/:id", checkAuthenticated, GetUserByID);
+
+router.patch("/settings", checkAuthenticated, Settings);
 
 module.exports = router;

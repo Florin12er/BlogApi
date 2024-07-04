@@ -16,6 +16,10 @@ const userSchema = new Schema({
 userSchema.methods.isValidPassword = function (password) {
   return bcrypt.compareSync(password, this.password);
 };
+userSchema.methods.updateUserDetails = async function (updates) {
+  Object.assign(this, updates);
+  await this.save();
+};
 
 const User = mongoose.model("User", userSchema);
 
