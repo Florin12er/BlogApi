@@ -11,8 +11,6 @@ const userSchema = new Schema({
   resetCode: { type: String },
   resetCodeExpires: { type: Date },
   profilePicture: { type: String },
-  followers: [{ type: Schema.Types.ObjectId, ref: 'User' }], // List of followers
-  following: [{ type: Schema.Types.ObjectId, ref: 'User' }], // List of users being followed
 });
 
 userSchema.methods.isValidPassword = function (password) {

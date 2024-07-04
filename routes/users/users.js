@@ -118,18 +118,6 @@ router.post(
   },
 );
 
-// Follow a user (protected)
-router.post("/follow/:id", checkAuthenticated, Follow);
-
-// Unfollow a user (protected)
-router.post("/unfollow/:id", checkAuthenticated, Unfollow);
-
-// Get followers count (protected)
-router.get("/followers/count", checkAuthenticated, Followers);
-
-// Get following count (protected)
-router.get("/following/count", checkAuthenticated, Following);
-
 // Like a blog (protected)
 router.post("/blog/:id/like", checkAuthenticated, Like);
 
