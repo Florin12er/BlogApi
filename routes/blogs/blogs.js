@@ -16,7 +16,7 @@ router.get("/", checkAuthenticated, ShowAllBlogs);
 
 router.get("/:id", checkAuthenticated, GetUserBlogById)
 // GET all blogs by user route
-router.get("/user", checkAuthenticated, ShowAllUserBlogs);
+router.get("/user/:id", checkAuthenticated, ShowAllUserBlogs);
 
 // POST new blog route
 router.post("/new", checkAuthenticated, AddBlog);

@@ -2,19 +2,14 @@ const Blog = require("../../models/Blog");
 
 async function ShowAllUserBlogs(req, res) {
   try {
-    // Assuming req.user contains the authenticated user object with _id
-    const userId = req.user._id;
+    const username = req.user.username; // Assuming your User model has _id field
 
-    // Fetch blogs authored by the user
-    const blogs = await Blog.find({ author: userId });
+    // Find all blogs where author matches the authenticated user's ID
+    const blogs = await Blog.find({ author: username });
 
-    // Respond with the blogs
-    res.status(200).json(blogs);
-  } catch (error) {
-    console.error("Error fetching user blogs:", error);
-    res.status(500).json({ error: "Failed to fetch user blogs" });
+    res.json(blogs);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 }
-
-module.exports = ShowAllUserBlogs;
-
+module.exports = ShowAllUserBlogs
