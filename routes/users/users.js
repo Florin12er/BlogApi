@@ -20,7 +20,18 @@ const GetUserByID = require("./getUserById.js");
 const { Follow, Unfollow, Followers, Following } = require("./follow.js");
 const { Like, Unlike, LikeCount } = require("./Likes.js");
 const { Dislike, Undislike, DislikeCount } = require("./Dislikes.js");
-const { Upload, upload } = require("./upload.js");
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, "../../public/uploads"));
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${req.user.id}-${Date.now()}${path.extname(file.originalname)}`);
+  },
+});
+
+const upload = multer({ storage: storage });
 
 // Route to show all users (protected)
 router.get("/", checkAuthenticated, ShowAllUsers);
@@ -79,11 +90,32 @@ router.get(
     res.json({ token });
   },
 );
+
+// Upload profile picture route (protected)
 router.post(
   "/upload",
   checkAuthenticated,
   upload.single("profilePicture"),
-  Upload,
+  async (req, res) => {
+    try {
+      const user = await User.findById(req.user.id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      user.profilePicture = `/uploads/${req.file.filename}`;
+      await user.save();
+
+      res.status(200).json({
+        message: "Profile picture uploaded successfully",
+        filePath: user.profilePicture,
+      });
+    } catch (error) {
+      res
+        .status(500)
+        .json({ message: "Error uploading profile picture", error });
+    }
+  },
 );
 
 // Follow a user (protected)
