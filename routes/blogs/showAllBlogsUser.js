@@ -1,15 +1,19 @@
 const Blog = require("../../models/Blog");
+const jwt = require("jsonwebtoken");
 
 async function ShowAllUserBlogs(req, res) {
   try {
-    const username = req.user.username; // Assuming your User model has _id field
+    const token = req.headers.authorization.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.id;
 
-    // Find all blogs where author matches the authenticated user's ID
-    const blogs = await Blog.find({ author: username });
-
-    res.json(blogs);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+    const blogs = await Blog.find({ author: userId });
+    res.status(200).json(blogs);
+  } catch (error) {
+    console.error("Error fetching user blogs:", error);
+    res.status(500).json({ error: "Failed to fetch user blogs" });
   }
 }
-module.exports = ShowAllUserBlogs
+
+module.exports = ShowAllUserBlogs;
+
