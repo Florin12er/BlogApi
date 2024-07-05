@@ -50,26 +50,26 @@ const checkGuest = (req, res, next) => {
     .status(403)
     .json({ message: "Access forbidden: guests cannot perform this action." });
 };
-
-// Guest login route
 router.post("/guest", async (req, res) => {
   try {
-    const guestId = uuidv4();
+    // Create a new guest user
     const guestUser = new User({
-      username: `guest_${guestId}`,
-      email: `guest_${guestId}@example.com`,
+      username: `guest_${Math.floor(Math.random() * 100000)}`,
+      email: `guest_${Math.floor(Math.random() * 100000)}@example.com`,
       isGuest: true,
     });
 
     await guestUser.save();
 
-    const token = jwt.sign({ sub: guestUser.id }, process.env.JWT_SECRET, {
+    // Generate a JWT token for the guest user
+    const token = jwt.sign({ userId: guestUser._id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
 
-    res.json({ token, user: guestUser });
+    res.json({ token, userId: guestUser._id });
   } catch (error) {
-    res.status(500).json({ message: "Error creating guest user", error });
+    console.error("Error creating guest user:", error);
+    res.status(500).json({ error: "Failed to create guest user" });
   }
 });
 // Logout route (protected or optional check)
