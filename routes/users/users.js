@@ -1,39 +1,44 @@
 const express = require("express");
 const router = express.Router();
-const passport = require("passport");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const path = require("path");
-const PostLogin = require("./login.js");
-const { PostRegister } = require("./register.js");
+const { v4: uuidv4 } = require("uuid");
 const User = require("../../models/User.js");
 const Blog = require("../../models/Blog.js");
-const LogOut = require("./logout.js");
-const { Reset, requestPasswordReset } = require("./reset.js");
-const ShowAllUsers = require("./showAll.js");
-const DeleteUser = require("./deleteUser.js");
-const {
-  checkNotAuthenticated,
-  checkAuthenticated,
-} = require("../../middleware/checks.js");
-const GetUserByID = require("./getUserById.js");
-const { Follow, Unfollow, Followers, Following } = require("./follow.js");
-const { Like, Unlike, LikeCount } = require("./Likes.js");
-const { Dislike, Undislike, DislikeCount } = require("./Dislikes.js");
-const Settings = require("./Setting.js");
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, "../../public/uploads"));
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${req.user.id}-${Date.now()}${path.extname(file.originalname)}`);
-  },
+const { checkAuthenticated, checkNotAuthenticated } = require("../../middleware/checks.js");
+
+// Middleware to differentiate guest and regular users
+const checkGuest = (req, res, next) => {
+  if (req.user.isGuest) {
+    return next();
+  }
+  res.status(403).json({ message: "Access forbidden: guests cannot perform this action." });
+};
+
+// Guest login route
+router.post("/guest", async (req, res) => {
+  try {
+    const guestId = uuidv4();
+    const guestUser = new User({
+      username: `guest_${guestId}`,
+      email: `guest_${guestId}@example.com`,
+      isGuest: true,
+    });
+
+    await guestUser.save();
+
+    const token = jwt.sign({ sub: guestUser.id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
+
+    res.json({ token, user: guestUser });
+  } catch (error) {
+    res.status(500).json({ message: "Error creating guest user", error });
+  }
 });
 
-const upload = multer({ storage: storage });
-
-// Route to show all users (protected)
+// Route to show all users (guests allowed)
 router.get("/", checkAuthenticated, ShowAllUsers);
 
 // Register route (accessible only for unauthenticated users)
@@ -45,8 +50,8 @@ router.post("/login", checkNotAuthenticated, PostLogin);
 // Logout route (protected or optional check)
 router.delete("/logout", checkAuthenticated, LogOut);
 
-// Delete user route (protected)
-router.delete("/delete", checkAuthenticated, DeleteUser);
+// Delete user route (protected, not for guests)
+router.delete("/delete", checkAuthenticated, checkGuest, DeleteUser);
 
 // Password reset routes (public)
 router.post("/reset", Reset);
@@ -91,10 +96,11 @@ router.get(
   },
 );
 
-// Upload profile picture route (protected)
+// Upload profile picture route (protected, not for guests)
 router.post(
   "/upload",
   checkAuthenticated,
+  checkGuest,
   upload.single("profilePicture"),
   async (req, res) => {
     try {
@@ -118,27 +124,29 @@ router.post(
   },
 );
 
-// Like a blog (protected)
+// Like a blog (protected, guests allowed)
 router.post("/blog/:id/like", checkAuthenticated, Like);
 
-// Unlike a blog (protected)
+// Unlike a blog (protected, guests allowed)
 router.post("/blog/:id/unlike", checkAuthenticated, Unlike);
 
-// Dislike a blog (protected)
+// Dislike a blog (protected, guests allowed)
 router.post("/blog/:id/dislike", checkAuthenticated, Dislike);
 
-// Undislike a blog (protected)
+// Undislike a blog (protected, guests allowed)
 router.post("/blog/:id/undislike", checkAuthenticated, Undislike);
 
-// Get likes count for a blog (protected)
+// Get likes count for a blog (guests allowed)
 router.get("/blog/:id/likes/count", checkAuthenticated, LikeCount);
 
-// Get dislikes count for a blog (protected)
+// Get dislikes count for a blog (guests allowed)
 router.get("/blog/:id/dislikes/count", checkAuthenticated, DislikeCount);
 
-// Get user by ID (protected)
+// Get user by ID (protected, guests allowed)
 router.get("/:id", checkAuthenticated, GetUserByID);
 
-router.patch("/settings", checkAuthenticated, Settings);
+// Update settings (protected, not for guests)
+router.patch("/settings", checkAuthenticated, checkGuest, Settings);
 
 module.exports = router;
+

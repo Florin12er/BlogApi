@@ -11,6 +11,7 @@ const userSchema = new Schema({
   resetCode: { type: String },
   resetCodeExpires: { type: Date },
   profilePicture: { type: String },
+  isGuest: { type: Boolean, default: false }, // Added to track guest users
 });
 
 userSchema.methods.isValidPassword = function (password) {
