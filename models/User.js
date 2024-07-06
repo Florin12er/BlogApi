@@ -1,25 +1,28 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
+const bcrypt = require("bcrypt");
 
-const commentSchema = new Schema({
-  user: { type: Schema.Types.ObjectId, ref: "User", required: true },
-  content: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now },
+const userSchema = new Schema({
+  username: { type: String, required: true },
+  email: { type: String, unique: true },
+  password: { type: String },
+  googleId: { type: String, unique: true, sparse: true },
+  githubId: { type: String, unique: true, sparse: true },
+  resetCode: { type: String },
+  resetCodeExpires: { type: Date },
+  profilePicture: { type: String },
+  isGuest: { type: Boolean, default: false }, // Added to track guest users
 });
 
-const blogSchema = new Schema({
-  author: { type: String, required: true },
-  title: { type: String, required: true },
-  links: { type: String, required: true },
-  tags: { type: String, required: true },
-  content: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now },
-  likes: [{ type: Schema.Types.ObjectId, ref: "User" }],
-  dislikes: [{ type: Schema.Types.ObjectId, ref: "User" }],
-  comments: [commentSchema],
-});
+userSchema.methods.isValidPassword = function (password) {
+  return bcrypt.compareSync(password, this.password);
+};
+userSchema.methods.updateUserDetails = async function (updates) {
+  Object.assign(this, updates);
+  await this.save();
+};
 
-const Blog = mongoose.model("Blog", blogSchema);
+const User = mongoose.model("User", userSchema);
 
-module.exports = Blog;
+module.exports = User;
 
