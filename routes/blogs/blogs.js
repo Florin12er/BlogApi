@@ -1,21 +1,24 @@
 const express = require("express");
 const router = express.Router();
 const Blog = require("../../models/Blog");
+const User = require("../../models/User");
 
 // Middleware for checking authentication
 const { checkAuthenticated } = require("../../middleware/checks");
+
+// Existing route imports
 const AddBlog = require("./addBlog");
 const ShowAllBlogs = require("./showAllBlogs");
 const ShowAllUserBlogs = require("./showAllBlogsUser");
 const DeleteBlog = require("./deleteBlog");
 const UpdateBlog = require("./updateBlog");
 const GetUserBlogById = require("./getBlogById");
-const User = require("../../models/User");
 
 // GET all blogs route
 router.get("/", checkAuthenticated, ShowAllBlogs);
 
 router.get("/:id", checkAuthenticated, GetUserBlogById);
+
 // GET all blogs by user route
 router.get("/user/:id", checkAuthenticated, ShowAllUserBlogs);
 
@@ -27,10 +30,11 @@ router.delete("/:id", checkAuthenticated, DeleteBlog);
 
 // PUT update blog route
 router.put("/:id", checkAuthenticated, UpdateBlog);
+
 // POST a new comment to a blog
-router.post("/:id/comment", checkAuthenticated,async (req, res) => {
+router.post("/:id/comment", checkAuthenticated, async (req, res) => {
   const { content } = req.body;
-  const userId = await Blog.findById(req.params.id);
+  const userId = req.user._id; // Correctly assign userId from authenticated user
 
   try {
     const blog = await Blog.findById(req.params.id);
@@ -46,79 +50,74 @@ router.post("/:id/comment", checkAuthenticated,async (req, res) => {
     blog.comments.push(newComment);
     await blog.save();
 
-    res
-      .status(201)
-      .json({ message: "Comment added successfully", comment: newComment });
+    res.status(201).json({ message: "Comment added successfully", comment: newComment });
   } catch (error) {
     res.status(500).json({ message: "Error adding comment", error });
   }
 });
+
 // PUT update a comment on a blog
-router.put(
-  "/:blogId/comment/:commentId",
-    checkAuthenticated,
-  async (req, res) => {
-    const { content } = req.body;
-        const userId = await User.findById(req.params.id)
+router.put("/:blogId/comment/:commentId", checkAuthenticated, async (req, res) => {
+  const { content } = req.body;
+  const userId = req.user._id; // Correctly assign userId from authenticated user
 
-    try {
-      const blog = await Blog.findById(req.params.blogId);
-      if (!blog) {
-        return res.status(404).json({ message: "Blog not found" });
-      }
-
-      const comment = blog.comments.id(req.params.commentId);
-      if (!comment) {
-        return res.status(404).json({ message: "Comment not found" });
-      }
-
-
-      comment.content = content;
-      await blog.save();
-
-      res
-        .status(200)
-        .json({ message: "Comment updated successfully", comment });
-    } catch (error) {
-      res.status(500).json({ message: "Error updating comment", error });
+  try {
+    const blog = await Blog.findById(req.params.blogId);
+    if (!blog) {
+      return res.status(404).json({ message: "Blog not found" });
     }
-  },
-);
+
+    const comment = blog.comments.id(req.params.commentId);
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+
+    if (comment.user.toString() !== userId.toString()) {
+      return res.status(403).json({ message: "Not authorized to update this comment" });
+    }
+
+    comment.content = content;
+    await blog.save();
+
+    res.status(200).json({ message: "Comment updated successfully", comment });
+  } catch (error) {
+    res.status(500).json({ message: "Error updating comment", error });
+  }
+});
+
 // DELETE a comment from a blog
-router.delete(
-  '/:blogId/comment/:commentId',
-  checkAuthenticated,
-  async (req, res) => {
-    const userId = req.user._id; // Assuming req.user has the authenticated user object
+router.delete("/:blogId/comment/:commentId", checkAuthenticated, async (req, res) => {
+  const userId = req.user._id; // Assuming req.user has the authenticated user object
 
-    try {
-      const blog = await Blog.findById(req.params.blogId);
-      if (!blog) {
-        return res.status(404).json({ message: 'Blog not found' });
-      }
-
-      const comment = blog.comments.id(req.params.commentId);
-      if (!comment) {
-        return res.status(404).json({ message: 'Comment not found' });
-      }
-
-      // Check if the authenticated user is the owner of the comment
-      comment.deleteOne();
-      await blog.save();
-
-      res.status(200).json({ message: 'Comment deleted successfully' });
-    } catch (error) {
-      res.status(500).json({ message: 'Error deleting comment', error });
+  try {
+    const blog = await Blog.findById(req.params.blogId);
+    if (!blog) {
+      return res.status(404).json({ message: "Blog not found" });
     }
-  },
-);
+
+    const comment = blog.comments.id(req.params.commentId);
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+
+    // Check if the authenticated user is the owner of the comment
+    if (comment.user.toString() !== userId.toString()) {
+      return res.status(403).json({ message: "Not authorized to delete this comment" });
+    }
+
+    comment.remove();
+    await blog.save();
+
+    res.status(200).json({ message: "Comment deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting comment", error });
+  }
+});
+
 // GET all comments for a blog
 router.get("/:id/comments", checkAuthenticated, async (req, res) => {
   try {
-    const blog = await Blog.findById(req.params.id).populate(
-      "comments.user",
-      "username",
-    );
+    const blog = await Blog.findById(req.params.id).populate("comments.user", "username");
     if (!blog) {
       return res.status(404).json({ message: "Blog not found" });
     }
@@ -130,3 +129,4 @@ router.get("/:id/comments", checkAuthenticated, async (req, res) => {
 });
 
 module.exports = router;
+
