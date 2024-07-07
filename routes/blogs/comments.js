@@ -72,13 +72,13 @@ async function DeleteComment(req, res) {
     }
 
     // Check if the authenticated user is the owner of the comment
-    if (comment.user.username !== req.user.username) {
+    if (comment.user.toString() !== req.user._id.toString()) {
       return res
         .status(403)
         .json({ message: "Unauthorized to delete this comment" });
     }
 
-    comment.remove(); // Use remove() method to delete subdocument
+    comment.deleteOne();
     await blog.save();
 
     res.status(200).json({ message: "Comment deleted successfully" });
@@ -87,6 +87,10 @@ async function DeleteComment(req, res) {
     res.status(500).json({ message: "Error deleting comment", error });
   }
 }
+
+module.exports = {
+  DeleteComment,
+};
 
 async function ShowAllComments(req, res) {
   try {
