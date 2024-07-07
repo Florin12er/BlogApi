@@ -77,7 +77,7 @@ app.get("/auth/github/callback", (req, res, next) => {
         expiresIn: "1h",
       });
       // Redirect to your React app with the token as a query parameter
-      res.redirect(`https://blogs-nine-steel.vercel.app/auth/github/callback?token=${token}`);
+      res.redirect(`https://friendly-cocada-abec0b.netlify.app/auth/github/callback?token=${token}`);
     });
   })(req, res, next);
 });
