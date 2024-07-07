@@ -49,7 +49,7 @@ async function UpdateComment(req, res) {
     res.status(500).json({ message: "Error updating comment", error });
   }
 }
-async function DeletComment(req, res) {
+async function DeleteComment(req, res) {
   const userId = req.user._id; // Assuming req.user has the authenticated user object
 
   try {
@@ -64,15 +64,20 @@ async function DeletComment(req, res) {
     }
 
     // Check if the authenticated user is the owner of the comment
-    comment.deleteOne();
+    if (comment.user.toString() !== userId) {
+      return res.status(403).json({ message: "Unauthorized to delete this comment" });
+    }
+
+    // Remove the comment from the array
+    comment.remove();
     await blog.save();
 
     res.status(200).json({ message: "Comment deleted successfully" });
   } catch (error) {
+    console.error("Error deleting comment:", error);
     res.status(500).json({ message: "Error deleting comment", error });
   }
 }
-
 async function ShowAllComments(req, res) {
   try {
     const blog = await Blog.findById(req.params.id).populate(
@@ -88,4 +93,4 @@ async function ShowAllComments(req, res) {
     res.status(500).json({ message: "Error retrieving comments", error });
   }
 }
-module.exports = { PostComment, UpdateComment, DeletComment, ShowAllComments };
+module.exports = { PostComment, UpdateComment, DeleteComment, ShowAllComments };
