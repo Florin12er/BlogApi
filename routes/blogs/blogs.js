@@ -11,6 +11,12 @@ const DeleteBlog = require("./deleteBlog");
 const UpdateBlog = require("./updateBlog");
 const GetUserBlogById = require("./getBlogById");
 const User = require("../../models/User");
+const {
+  PostComment,
+  UpdateComment,
+  DeletComment,
+  ShowAllComments,
+} = require("./comments");
 
 // GET all blogs route
 router.get("/", checkAuthenticated, ShowAllBlogs);
@@ -28,105 +34,12 @@ router.delete("/:id", checkAuthenticated, DeleteBlog);
 // PUT update blog route
 router.put("/:id", checkAuthenticated, UpdateBlog);
 // POST a new comment to a blog
-router.post("/:id/comment", checkAuthenticated,async (req, res) => {
-  const { content } = req.body;
-  const userId = await Blog.findById(req.params.id);
-
-  try {
-    const blog = await Blog.findById(req.params.id);
-    if (!blog) {
-      return res.status(404).json({ message: "Blog not found" });
-    }
-
-    const newComment = {
-      user: userId,
-      content,
-    };
-
-    blog.comments.push(newComment);
-    await blog.save();
-
-    res
-      .status(201)
-      .json({ message: "Comment added successfully", comment: newComment });
-  } catch (error) {
-    res.status(500).json({ message: "Error adding comment", error });
-  }
-});
+router.post("/:id/comment", checkAuthenticated, PostComment);
 // PUT update a comment on a blog
-router.put(
-  "/:blogId/comment/:commentId",
-    checkAuthenticated,
-  async (req, res) => {
-    const { content } = req.body;
-        const userId = await User.findById(req.params.id)
-
-    try {
-      const blog = await Blog.findById(req.params.blogId);
-      if (!blog) {
-        return res.status(404).json({ message: "Blog not found" });
-      }
-
-      const comment = blog.comments.id(req.params.commentId);
-      if (!comment) {
-        return res.status(404).json({ message: "Comment not found" });
-      }
-
-
-      comment.content = content;
-      await blog.save();
-
-      res
-        .status(200)
-        .json({ message: "Comment updated successfully", comment });
-    } catch (error) {
-      res.status(500).json({ message: "Error updating comment", error });
-    }
-  },
-);
+router.put("/:blogId/comment/:commentId", checkAuthenticated, UpdateComment);
 // DELETE a comment from a blog
-router.delete(
-  '/:blogId/comment/:commentId',
-  checkAuthenticated,
-  async (req, res) => {
-    const userId = req.user._id; // Assuming req.user has the authenticated user object
-
-    try {
-      const blog = await Blog.findById(req.params.blogId);
-      if (!blog) {
-        return res.status(404).json({ message: 'Blog not found' });
-      }
-
-      const comment = blog.comments.id(req.params.commentId);
-      if (!comment) {
-        return res.status(404).json({ message: 'Comment not found' });
-      }
-
-      // Check if the authenticated user is the owner of the comment
-      comment.deleteOne();
-      await blog.save();
-
-      res.status(200).json({ message: 'Comment deleted successfully' });
-    } catch (error) {
-      res.status(500).json({ message: 'Error deleting comment', error });
-    }
-  },
-);
+router.delete("/:blogId/comment/:commentId", checkAuthenticated, DeletComment);
 // GET all comments for a blog
-router.get("/:id/comments", checkAuthenticated, async (req, res) => {
-  try {
-    const blog = await Blog.findById(req.params.id).populate(
-      "comments.user",
-      "username",
-    );
-    if (!blog) {
-      return res.status(404).json({ message: "Blog not found" });
-    }
-
-    res.status(200).json(blog.comments);
-  } catch (error) {
-    res.status(500).json({ message: "Error retrieving comments", error });
-  }
-});
+router.get("/:id/comments", checkAuthenticated, ShowAllComments);
 
 module.exports = router;

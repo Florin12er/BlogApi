@@ -21,6 +21,7 @@ const { Like, Unlike, LikeCount } = require("./Likes.js");
 const { Dislike, Undislike, DislikeCount } = require("./Dislikes.js");
 const Settings = require("./Setting.js");
 const passport = require("passport");
+const Upload = require("./upload.js");
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -104,61 +105,25 @@ router.get(
   },
 );
 
-// GitHub authentication routes
-router.get(
-  "/auth/github",
-  passport.authenticate("github", { scope: ["user:email"] }),
-);
-
-router.get(
-  "/auth/github/callback",
-  passport.authenticate("github", { failureRedirect: "/login" }),
-  (req, res) => {
-    const token = jwt.sign({ sub: req.user.id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
-    res.json({ token });
-  },
-);
-
 // Upload profile picture route (protected)
 router.post(
   "/upload",
   checkAuthenticated,
   upload.single("profilePicture"),
-  async (req, res) => {
-    try {
-      const user = await User.findById(req.user.id);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      user.profilePicture = `/uploads/${req.file.filename}`;
-      await user.save();
-
-      res.status(200).json({
-        message: "Profile picture uploaded successfully",
-        filePath: user.profilePicture,
-      });
-    } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Error uploading profile picture", error });
-    }
-  },
+ Upload 
 );
 
 // Like a blog (protected)
-router.post("/blog/:id/like", checkAuthenticated, Like);
+router.post("/blog/:id/like", checkGuest,checkAuthenticated, Like);
 
 // Unlike a blog (protected)
-router.post("/blog/:id/unlike", checkAuthenticated, Unlike);
+router.post("/blog/:id/unlike", checkGuest,checkAuthenticated, Unlike);
 
 // Dislike a blog (protected)
-router.post("/blog/:id/dislike", checkAuthenticated, Dislike);
+router.post("/blog/:id/dislike", checkGuest,checkAuthenticated, Dislike);
 
 // Undislike a blog (protected)
-router.post("/blog/:id/undislike", checkAuthenticated, Undislike);
+router.post("/blog/:id/undislike", checkGuest,checkAuthenticated, Undislike);
 
 // Get likes count for a blog (protected)
 router.get("/blog/:id/likes/count", checkAuthenticated, LikeCount);
@@ -169,6 +134,6 @@ router.get("/blog/:id/dislikes/count", checkAuthenticated, DislikeCount);
 // Get user by ID (protected)
 router.get("/:id", checkAuthenticated, GetUserByID);
 
-router.patch("/settings", checkAuthenticated, Settings);
+router.patch("/settings", checkAuthenticated, checkGuest,Settings);
 
 module.exports = router;

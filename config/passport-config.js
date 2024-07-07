@@ -1,3 +1,5 @@
+require('dotenv').config(); // Load environment variables at the beginning
+
 const LocalStrategy = require("passport-local").Strategy;
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const GitHubStrategy = require("passport-github2").Strategy;
@@ -23,8 +25,8 @@ function initialize(passport) {
                 } catch (error) {
                     done(error);
                 }
-            },
-        ),
+            }
+        )
     );
 
     passport.use(
@@ -36,7 +38,7 @@ function initialize(passport) {
                     if (!user) {
                         return done(null, false, { message: "Invalid email or password" });
                     }
-                    const isValid = bcrypt.compare(password, user.password); // Assuming bcrypt is used for hashing passwords
+                    const isValid = bcrypt.compare(password, user.password); // Add `await`
                     if (!isValid) {
                         return done(null, false, { message: "Invalid email or password" });
                     }
@@ -44,8 +46,8 @@ function initialize(passport) {
                 } catch (error) {
                     return done(error);
                 }
-            },
-        ),
+            }
+        )
     );
 
     passport.use(
@@ -53,8 +55,7 @@ function initialize(passport) {
             {
                 clientID: process.env.GOOGLE_CLIENT_ID,
                 clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-                callbackURL:
-                    "https://blogapi-production-fb2f.up.railway.app/user/auth/google/callback",
+                callbackURL: "https://blogapi-production-fb2f.up.railway.app/auth/google/callback",
             },
             async (accessToken, refreshToken, profile, done) => {
                 const { id, emails, displayName } = profile;
@@ -81,8 +82,8 @@ function initialize(passport) {
                 } catch (error) {
                     done(error);
                 }
-            },
-        ),
+            }
+        )
     );
 
     passport.use(
@@ -90,15 +91,14 @@ function initialize(passport) {
             {
                 clientID: process.env.GITHUB_CLIENT_ID,
                 clientSecret: process.env.GITHUB_CLIENT_SECRET,
-                callbackURL: "https://blogapi-production-fb2f.up.railway.app/user/auth/github/callback",
+                callbackURL: "https://blogapi-production-fb2f.up.railway.app/auth/github/callback",
             },
             async (accessToken, refreshToken, profile, done) => {
                 const { id, emails, username } = profile;
 
                 try {
-                    let user = await User.findOne({
-                        email: emails ? emails[0].value : "",
-                    });
+                    let email = emails && emails[0] && emails[0].value;
+                    let user = await User.findOne({ email: email || '' });
 
                     if (user) {
                         if (!user.githubId) {
@@ -110,7 +110,7 @@ function initialize(passport) {
 
                     user = new User({
                         username: username,
-                        email: emails ? emails[0].value : "",
+                        email: email || '',
                         githubId: id,
                     });
 
@@ -120,11 +120,10 @@ function initialize(passport) {
                     console.error("GitHub authentication error:", error);
                     done(error);
                 }
-            },
-        ),
+            }
+        )
     );
 
-    // Remove or leave as stubs depending on your application requirements
     passport.serializeUser((user, done) => {
         done(null, user.id);
     });
