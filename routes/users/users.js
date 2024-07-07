@@ -88,23 +88,6 @@ router.get("/auth/status", checkAuthenticated, (req, res) => {
   res.status(200).json({ user: req.user });
 });
 
-// Google authentication routes
-router.get(
-  "/auth/google",
-  passport.authenticate("google", { scope: ["profile", "email"] }),
-);
-
-router.get(
-  "/auth/google/callback",
-  passport.authenticate("google", { failureRedirect: "/login" }),
-  (req, res) => {
-    const token = jwt.sign({ sub: req.user.id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
-    res.json({ token });
-  },
-);
-
 // Upload profile picture route (protected)
 router.post(
   "/upload",
