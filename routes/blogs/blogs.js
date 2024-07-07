@@ -36,9 +36,9 @@ router.put("/:id", checkAuthenticated, UpdateBlog);
 // POST a new comment to a blog
 router.post("/:id/comment", checkAuthenticated, PostComment);
 // PUT update a comment on a blog
-router.put("/:blogId/comment/:commentId",checkCommentOwnership, checkAuthenticated, UpdateComment);
+router.put("/:blogId/comment/:commentId", checkAuthenticated, UpdateComment);
 // DELETE a comment from a blog
-router.delete("/:blogId/comment/:commentId",checkCommentOwnership, checkAuthenticated, DeletComment);
+router.delete("/:blogId/comment/:commentId", checkAuthenticated, DeletComment);
 // GET all comments for a blog
 router.get("/:id/comments", checkAuthenticated, ShowAllComments);
 
