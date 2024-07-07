@@ -33,7 +33,6 @@ function checkNotAuthenticated(req, res, next) {
   }
   next();
 }
-
 async function checkCommentOwnership(req, res, next) {
   try {
     const blog = await Blog.findById(req.params.blogId);
@@ -48,6 +47,7 @@ async function checkCommentOwnership(req, res, next) {
 
     console.log("Authenticated user id:", req.user._id);
     console.log("Comment user id:", comment.user.toString());
+    console.log("Comment:", comment); // Log the entire comment object for inspection
 
     // Check if the authenticated user is the owner of the comment
     if (comment.user.toString() !== req.user._id.toString()) {
@@ -58,10 +58,8 @@ async function checkCommentOwnership(req, res, next) {
 
     next(); // Proceed to the next middleware or controller if authorized
   } catch (error) {
-    console.log(req.user._id, req.params.blogId, req.params.commentId);
-    res
-      .status(500)
-      .json({ message: "Error checking comment ownership", error });
+    console.error("Error in checkCommentOwnership:", error);
+    res.status(500).json({ message: "Error checking comment ownership", error });
   }
 }
 
