@@ -49,7 +49,7 @@ async function UpdateComment(req, res) {
     res.status(500).json({ message: "Error updating comment", error });
   }
 }
-async function DeletComment(req, res) {
+async function DeleteComment(req, res) {
   const userId = req.user._id; // Assuming req.user has the authenticated user object
 
   try {
@@ -88,4 +88,4 @@ async function ShowAllComments(req, res) {
     res.status(500).json({ message: "Error retrieving comments", error });
   }
 }
-module.exports = { PostComment, UpdateComment, DeletComment, ShowAllComments };
+module.exports = { PostComment, UpdateComment, DeleteComment, ShowAllComments };
