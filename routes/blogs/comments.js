@@ -49,9 +49,6 @@ async function UpdateComment(req, res) {
     res.status(500).json({ message: "Error updating comment", error });
   }
 }
-// Assuming this is in your 'comments.js' route handler
-const Blog = require("../../models/Blog");
-
 async function DeleteComment(req, res) {
   const { blogId, commentId } = req.params;
 
