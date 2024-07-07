@@ -4,7 +4,7 @@ const User = require("../../models/User");
 async function PostComment(req, res) {
   const { content } = req.body;
   const userId = await Blog.findById(req.params.id);
-  const username = req.user.username;
+  const username = User.find(username);
 
   try {
     const blog = await Blog.findById(req.params.id);
