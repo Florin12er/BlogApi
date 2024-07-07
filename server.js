@@ -28,11 +28,7 @@ app.use(cors(corsOptions));
 require("dotenv").config();
 
 // Initialize Passport
-initializePassport(
-  passport,
-  async (email) => await User.findOne({ email }),
-  async (id) => await User.findById(id),
-);
+initializePassport(passport);
 
 // Middleware setup
 app.use(express.urlencoded({ extended: true }));
@@ -40,12 +36,12 @@ app.use(express.json());
 app.use(methodOverride("_method"));
 app.use(
   session({
-    secret: "keyboard cat",
+    secret: process.env.SESSION_SECRET || "keyboard cat",
     resave: false,
     saveUninitialized: true,
     cookie: { secure: true }, // Set secure cookie if using HTTPS
     proxy: true, // Set this to true if you're behind a reverse proxy (e.g., Heroku)
-  }),
+  })
 );
 app.use(passport.initialize());
 
@@ -55,7 +51,8 @@ const Blogs = require("./routes/blogs/blogs.js");
 
 app.use("/user", Users);
 app.use("/blog", Blogs);
-app.get("/auth/github", passport.authenticate("github", { scope: ["user"] }));
+
+app.get("/auth/github", passport.authenticate("github", { scope: ["user:email"] }));
 
 app.get(
   "/auth/github/callback",
@@ -72,12 +69,14 @@ app.get(
         if (err) {
           return res.status(500).json({ message: "Login failed", error: err });
         }
-        // On successful login, return user details or token
-        return res.status(200).json({ message: "Authentication successful", user });
+
+        const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        return res.status(200).json({ message: "Authentication successful", token });
       });
     })(req, res, next);
   }
 );
+
 // MongoDB connection
 const dbUrl = process.env.DATABASEURL;
 mongoose.connect(dbUrl);
@@ -90,3 +89,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+
