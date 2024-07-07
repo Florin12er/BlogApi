@@ -4,6 +4,7 @@ const User = require("../../models/User");
 async function PostComment(req, res) {
   const { content } = req.body;
   const userId = await Blog.findById(req.params.id);
+  const username = req.user.username;
 
   try {
     const blog = await Blog.findById(req.params.id);
@@ -21,7 +22,11 @@ async function PostComment(req, res) {
 
     res
       .status(201)
-      .json({ message: "Comment added successfully", comment: newComment });
+      .json({
+        message: "Comment added successfully",
+        comment: newComment,
+        username: username,
+      });
   } catch (error) {
     res.status(500).json({ message: "Error adding comment", error });
   }
@@ -65,7 +70,9 @@ async function DeleteComment(req, res) {
 
     // Check if the authenticated user is the owner of the comment
     if (comment.user.username !== req.user.username) {
-      return res.status(403).json({ message: "Unauthorized to delete this comment" });
+      return res
+        .status(403)
+        .json({ message: "Unauthorized to delete this comment" });
     }
 
     comment.remove(); // Use remove() method to delete subdocument

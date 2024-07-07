@@ -19,15 +19,19 @@ function PostLogin(req, res, next) {
     const token = jwt.sign(
       { id: user.id, username: user.username, email: user.email },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "1h" },
     );
 
     // Include user ID in the response
     return res
       .status(200)
-      .json({ message: "Logged in successfully", token, userId: user.username });
+      .json({
+        message: "Logged in successfully",
+        token,
+        userId: user.id,
+        username: user.username,
+      });
   })(req, res, next);
 }
 
 module.exports = PostLogin;
-
