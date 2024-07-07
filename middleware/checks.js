@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
-const Blog = require("../models/Blog")
+const Blog = require("../models/Blog");
 
 dotenv.config();
 
@@ -46,6 +46,9 @@ async function checkCommentOwnership(req, res, next) {
       return res.status(404).json({ message: "Comment not found" });
     }
 
+    console.log("Authenticated user id:", req.user._id);
+    console.log("Comment user id:", comment.user.toString());
+
     // Check if the authenticated user is the owner of the comment
     if (comment.user.toString() !== req.user._id.toString()) {
       return res
@@ -55,6 +58,7 @@ async function checkCommentOwnership(req, res, next) {
 
     next(); // Proceed to the next middleware or controller if authorized
   } catch (error) {
+    console.log(req.user._id, req.params.blogId, req.params.commentId);
     res
       .status(500)
       .json({ message: "Error checking comment ownership", error });
