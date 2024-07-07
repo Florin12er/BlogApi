@@ -45,15 +45,13 @@ async function checkCommentOwnership(req, res, next) {
       return res.status(404).json({ message: "Comment not found" });
     }
 
-    console.log("Authenticated user id:", req.user._id);
-    console.log("Comment user id:", comment.user.toString());
-    console.log("Comment:", comment); // Log the entire comment object for inspection
+    // Log user and comment details for debugging
+    console.log("Authenticated user:", req.user);
+    console.log("Comment user:", comment.user);
 
     // Check if the authenticated user is the owner of the comment
-    if (comment.user.toString() !== req.user._id.toString()) {
-      return res
-        .status(403)
-        .json({ message: "You are not authorized to perform this action" });
+    if (!req.user || !req.user._id || comment.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "You are not authorized to perform this action" });
     }
 
     next(); // Proceed to the next middleware or controller if authorized
