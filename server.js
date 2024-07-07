@@ -15,7 +15,7 @@ const corsOptions = {
     "http://localhost:5174",
     "http://localhost:5173",
     "http://localhost:3000",
-    "https://blogs-k74ezq06h-florin12ers-projects.vercel.app",
+    "https://blogs-florin12er-florin12ers-projects.vercel.app",
     "https://blogs-nine-steel.vercel.app",
     "https://blogapi-production-fb2f.up.railway.app",
   ],
@@ -79,7 +79,7 @@ app.get("/auth/github/callback", (req, res, next) => {
       });
       // Redirect to your React app with the token as a query parameter
       res.redirect(
-        `https://blogs-k74ezq06h-florin12ers-projects.vercel.app/auth/github/callback?token=${token}`,
+        `https://blogs-florin12er-florin12ers-projects.vercel.app/auth/github/callback?token=${token}`,
       );
     });
   })(req, res, next);
