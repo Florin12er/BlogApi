@@ -71,7 +71,8 @@ app.get(
         }
 
         const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-        return res.status(200).json({ message: "Authentication successful", token });
+        // Redirect to your React app with the token as a query parameter
+        res.redirect(`https://blogs-nine-steel.vercel.app/auth/github/callback?token=${token}`);
       });
     })(req, res, next);
   }
