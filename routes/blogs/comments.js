@@ -3,6 +3,7 @@ const User = require("../../models/User");
 
 async function PostComment(req, res) {
   const { content } = req.body;
+  const userId = await Blog.findById(req.params.id);
 
   try {
     const blog = await Blog.findById(req.params.id);
@@ -14,20 +15,21 @@ async function PostComment(req, res) {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-
     const newComment = {
-      user: user.username, // Use username instead of userId
+      user: userId,
       content,
     };
 
     blog.comments.push(newComment);
     await blog.save();
 
-    res.status(201).json({
-      message: "Comment added successfully",
-      comment: newComment,
-      username: user.username, // Return the username in the response
-    });
+    res
+      .status(201)
+      .json({
+        message: "Comment added successfully",
+        comment: newComment,
+        username: user.username,
+      });
   } catch (error) {
     res.status(500).json({ message: "Error adding comment", error });
   }
