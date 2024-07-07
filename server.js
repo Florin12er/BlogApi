@@ -59,12 +59,25 @@ app.get("/auth/github", passport.authenticate("github", { scope: ["user"] }));
 
 app.get(
   "/auth/github/callback",
-  passport.authenticate("github", {
-    failureRedirect: "/login",
-    successRedirect: "/",
-  })
-);
+  (req, res, next) => {
+    passport.authenticate("github", (err, user, info) => {
+      if (err) {
+        return res.status(500).json({ message: "Internal server error", error: err });
+      }
+      if (!user) {
+        return res.status(401).json({ message: "Authentication failed", info });
+      }
 
+      req.logIn(user, (err) => {
+        if (err) {
+          return res.status(500).json({ message: "Login failed", error: err });
+        }
+        // On successful login, return user details or token
+        return res.status(200).json({ message: "Authentication successful", user });
+      });
+    })(req, res, next);
+  }
+);
 // MongoDB connection
 const dbUrl = process.env.DATABASEURL;
 mongoose.connect(dbUrl);
