@@ -3,6 +3,7 @@ const User = require("../../models/User");
 
 async function PostComment(req, res) {
   const { content } = req.body;
+  const userId = await Blog.findById(req.params.id);
 
   try {
     const blog = await Blog.findById(req.params.id);
@@ -10,27 +11,24 @@ async function PostComment(req, res) {
       return res.status(404).json({ message: "Blog not found" });
     }
 
-    const user = await User.findById(req.user._id); // Fetching the authenticated user
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
     const newComment = {
-      user: user.username, // Use username instead of userId
+      user: userId,
       content,
     };
 
     blog.comments.push(newComment);
     await blog.save();
 
-    res.status(201).json({ message: "Comment added successfully", comment: newComment });
+    res
+      .status(201)
+      .json({ message: "Comment added successfully", comment: newComment });
   } catch (error) {
     res.status(500).json({ message: "Error adding comment", error });
   }
 }
-
 async function UpdateComment(req, res) {
   const { content } = req.body;
+  const userId = await User.findById(req.params.id);
 
   try {
     const blog = await Blog.findById(req.params.blogId);
@@ -43,12 +41,6 @@ async function UpdateComment(req, res) {
       return res.status(404).json({ message: "Comment not found" });
     }
 
-    // Check if the authenticated user is the owner of the comment
-    const user = await User.findById(req.user._id);
-    if (!user || comment.user !== user.username) {
-      return res.status(403).json({ message: "Unauthorized to update this comment" });
-    }
-
     comment.content = content;
     await blog.save();
 
@@ -57,7 +49,6 @@ async function UpdateComment(req, res) {
     res.status(500).json({ message: "Error updating comment", error });
   }
 }
-
 async function DeleteComment(req, res) {
   const { blogId, commentId } = req.params;
 
@@ -73,7 +64,7 @@ async function DeleteComment(req, res) {
     }
 
     // Check if the authenticated user is the owner of the comment
-    if (comment.user !== req.user.username) {
+    if (comment.user.username !== req.user.username) {
       return res.status(403).json({ message: "Unauthorized to delete this comment" });
     }
 
@@ -91,7 +82,7 @@ async function ShowAllComments(req, res) {
   try {
     const blog = await Blog.findById(req.params.id).populate(
       "comments.user",
-      "username"
+      "username",
     );
     if (!blog) {
       return res.status(404).json({ message: "Blog not found" });
@@ -102,5 +93,4 @@ async function ShowAllComments(req, res) {
     res.status(500).json({ message: "Error retrieving comments", error });
   }
 }
-
 module.exports = { PostComment, UpdateComment, DeleteComment, ShowAllComments };
