@@ -25,7 +25,7 @@ function PostLogin(req, res, next) {
     // Include user ID in the response
     return res
       .status(200)
-      .json({ message: "Logged in successfully", token, userId: user.id });
+      .json({ message: "Logged in successfully", token, userId: user.username });
   })(req, res, next);
 }
 
