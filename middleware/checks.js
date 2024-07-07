@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
-const Blog = require("../../models/Blog");
+const Blog = require("../models/Blog")
 
 dotenv.config();
 
