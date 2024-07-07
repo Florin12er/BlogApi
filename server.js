@@ -53,10 +53,18 @@ const Blogs = require("./routes/blogs/blogs.js");
 app.use("/user", Users);
 app.use("/blog", Blogs);
 
+// Helper function to get the redirect URL based on origin
+const getRedirectUrl = (origin, provider) => {
+  const baseUrl = origin.includes("blogs-nine-steel.vercel.app")
+    ? "https://blog-maker-two.vercel.app"
+    : "https://blogs-nine-steel.vercel.app";
+  return `${baseUrl}/auth/${provider}/callback`;
+};
+
 // GitHub authentication route
 app.get(
   "/auth/github",
-  passport.authenticate("github", { scope: ["user:email"] }),
+  passport.authenticate("github", { scope: ["user:email"] })
 );
 
 // GitHub callback route
@@ -79,21 +87,19 @@ app.get("/auth/github/callback", (req, res, next) => {
       const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
         expiresIn: "1h",
       });
-      // Determine which domain to redirect based on the request origin
-      const redirectUrl =
-        req.headers.origin === "https://blogs-nine-steel.vercel.app"
-          ? "https://blog-maker-two.vercel.app/auth/github/callback"
-          : "https://blogs-nine-steel.vercel.app/auth/github/callback";
-
+      const redirectUrl = getRedirectUrl(req.headers.origin, "github");
       res.redirect(`${redirectUrl}?token=${token}`);
     });
   })(req, res, next);
 });
+
+// Google authentication route
 app.get(
   "/auth/google",
-  passport.authenticate("google", { scope: ["profile", "email"] }),
+  passport.authenticate("google", { scope: ["profile", "email"] })
 );
 
+// Google callback route
 app.get("/auth/google/callback", (req, res, next) => {
   passport.authenticate("google", (err, user, info) => {
     if (err) {
@@ -113,12 +119,7 @@ app.get("/auth/google/callback", (req, res, next) => {
       const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
         expiresIn: "1h",
       });
-      // Determine which domain to redirect based on the request origin
-      const redirectUrl =
-        req.headers.origin === "https://blogs-nine-steel.vercel.app"
-          ? "https://blog-maker-two.vercel.app/auth/google/callback"
-          : "https://blogs-nine-steel.vercel.app/auth/google/callback";
-
+      const redirectUrl = getRedirectUrl(req.headers.origin, "google");
       res.redirect(`${redirectUrl}?token=${token}`);
     });
   })(req, res, next);
@@ -136,3 +137,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+
