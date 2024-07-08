@@ -160,10 +160,16 @@ router.patch(
 router.post("/generate-api-key", checkAuthenticated, async (req, res) => {
   try {
     const apiKey = generateApiKey();
-    const user = new User({
-      apiKey: apiKey,
-    });
+    
+    // Retrieve authenticated user from req.user
+    const user = req.user;
+    
+    // Update user's apiKey field
+    user.apiKey = apiKey;
+    
+    // Save user with updated apiKey
     await user.save();
+    
     res.status(200).json({ apiKey });
   } catch (error) {
     console.error("Error generating API key:", error);
