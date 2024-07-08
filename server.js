@@ -79,13 +79,16 @@ app.get("/auth/github/callback", (req, res, next) => {
       const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
         expiresIn: "1h",
       });
-      // Determine which domain to redirect based on the request origin
-      const redirectUrl =
-        req.headers.origin === "https://blogs-nine-steel.vercel.app"
-          ? "https://blogs-nine-steel.vercel.app/auth/github/callback"
-          : "https://blog-maker-two.vercel.app/auth/github/callback";
+      const allowedOrigins = [
+        "https://blog-maker-two.vercel.app",
+        "https://blogs-nine-steel.vercel.app",
+        // ...
+      ];
+      const redirectUrl = allowedOrigins.includes(req.headers.origin)
+        ? `${req.headers.origin}/auth/github/callback?token=${token}`
+        : "https://default-domain.com/auth/github/callback?token=${token}";
 
-      res.redirect(`${redirectUrl}?token=${token}`);
+      res.redirect(redirectUrl);
     });
   })(req, res, next);
 });
@@ -114,13 +117,16 @@ app.get("/auth/google/callback", (req, res, next) => {
       const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
         expiresIn: "1h",
       });
-      // Determine which domain to redirect based on the request origin
-      const redirectUrl =
-        req.headers.origin === "https://blogs-nine-steel.vercel.app"
-          ? "https://blogs-nine-steel.vercel.app/auth/google/callback"
-          : "https://blog-maker-two.vercel.app/auth/google/callback";
+      const allowedOrigins = [
+        "https://blog-maker-two.vercel.app",
+        "https://blogs-nine-steel.vercel.app",
+        // ...
+      ];
+      const redirectUrl = allowedOrigins.includes(req.headers.origin)
+        ? `${req.headers.origin}/auth/google/callback?token=${token}`
+        : "https://default-domain.com/auth/google/callback?token=${token}";
 
-      res.redirect(`${redirectUrl}?token=${token}`);
+      res.redirect(redirectUrl);
     });
   })(req, res, next);
 });
@@ -137,4 +143,3 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
-
