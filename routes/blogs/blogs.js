@@ -3,7 +3,7 @@ const router = express.Router();
 const Blog = require("../../models/Blog");
 
 // Middleware for checking authentication
-const { checkAuthenticated, checkCommentOwnership } = require("../../middleware/checks");
+const { checkAuthenticated, checkCommentOwnership, checkGuest, authenticateApiKey } = require("../../middleware/checks");
 const AddBlog = require("./addBlog");
 const ShowAllBlogs = require("./showAllBlogs");
 const ShowAllUserBlogs = require("./showAllBlogsUser");
@@ -19,27 +19,27 @@ const {
 } = require("./comments");
 
 // GET all blogs route
-router.get("/", checkAuthenticated, ShowAllBlogs);
+router.get("/", authenticateApiKey,checkAuthenticated, ShowAllBlogs);
 
-router.get("/:id", checkAuthenticated, GetUserBlogById);
+router.get("/:id", authenticateApiKey,checkAuthenticated, GetUserBlogById);
 // GET all blogs by user route
-router.get("/user/:id", checkAuthenticated, ShowAllUserBlogs);
+router.get("/user/:id", authenticateApiKey,checkAuthenticated, ShowAllUserBlogs);
 
 // POST new blog route
-router.post("/new", checkAuthenticated, AddBlog);
+router.post("/new", authenticateApiKey,checkAuthenticated, AddBlog);
 
 // DELETE blog route
-router.delete("/:id", checkAuthenticated, DeleteBlog);
+router.delete("/:id",authenticateApiKey, checkAuthenticated, DeleteBlog);
 
 // PUT update blog route
-router.put("/:id", checkAuthenticated, UpdateBlog);
+router.put("/:id", authenticateApiKey,checkAuthenticated, UpdateBlog);
 // POST a new comment to a blog
-router.post("/:id/comment", checkAuthenticated, PostComment);
+router.post("/:id/comment",authenticateApiKey, checkGuest,checkAuthenticated, PostComment);
 // PUT update a comment on a blog
-router.put("/:blogId/comment/:commentId", checkAuthenticated, UpdateComment);
+router.put("/:blogId/comment/:commentId", authenticateApiKey,checkGuest,checkAuthenticated, UpdateComment);
 // DELETE a comment from a blog
-router.delete("/:blogId/comment/:commentId", checkAuthenticated, DeleteComment);
+router.delete("/:blogId/comment/:commentId",authenticateApiKey,checkGuest, checkAuthenticated, DeleteComment);
 // GET all comments for a blog
-router.get("/:id/comments", checkAuthenticated, ShowAllComments);
+router.get("/:id/comments",checkGuest,authenticateApiKey, checkAuthenticated, ShowAllComments);
 
 module.exports = router;

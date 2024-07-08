@@ -3,6 +3,8 @@ const router = express.Router();
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const path = require("path");
+const crypto = require("crypto");
+
 const PostLogin = require("./login.js");
 const { PostRegister } = require("./register.js");
 const User = require("../../models/User.js");
@@ -14,6 +16,8 @@ const DeleteUser = require("./deleteUser.js");
 const {
   checkNotAuthenticated,
   checkAuthenticated,
+  authenticateApiKey,
+  checkGuest,
 } = require("../../middleware/checks.js");
 const GetUserByID = require("./getUserById.js");
 const { Follow, Unfollow, Followers, Following } = require("./follow.js");
@@ -22,6 +26,7 @@ const { Dislike, Undislike, DislikeCount } = require("./Dislikes.js");
 const Settings = require("./Setting.js");
 const passport = require("passport");
 const Upload = require("./upload.js");
+
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -31,8 +36,12 @@ const storage = multer.diskStorage({
     cb(null, `${req.user.id}-${Date.now()}${path.extname(file.originalname)}`);
   },
 });
-
 const upload = multer({ storage: storage });
+
+// Utility function to generate an API key
+const generateApiKey = () => {
+  return crypto.randomBytes(32).toString("hex");
+};
 
 // Route to show all users (protected)
 router.get("/", checkAuthenticated, ShowAllUsers);
@@ -43,14 +52,7 @@ router.post("/register", checkNotAuthenticated, PostRegister);
 // Login route (accessible only for unauthenticated users)
 router.post("/login", checkNotAuthenticated, PostLogin);
 
-const checkGuest = (req, res, next) => {
-  if (req.user.isGuest) {
-    return next();
-  }
-  res
-    .status(403)
-    .json({ message: "Access forbidden: guests cannot perform this action." });
-};
+// Route to create a guest user
 router.post("/guest", async (req, res) => {
   try {
     // Create a new guest user
@@ -63,9 +65,7 @@ router.post("/guest", async (req, res) => {
     await guestUser.save();
 
     // Generate a JWT token for the guest user
-    const token = jwt.sign({ userId: guestUser._id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
+    const token = jwt.sign({ userId: guestUser._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
     res.json({ token, userId: guestUser._id });
   } catch (error) {
@@ -73,11 +73,12 @@ router.post("/guest", async (req, res) => {
     res.status(500).json({ error: "Failed to create guest user" });
   }
 });
+
 // Logout route (protected or optional check)
 router.delete("/logout", checkAuthenticated, LogOut);
 
 // Delete user route (protected)
-router.delete("/delete", checkAuthenticated, DeleteUser);
+router.delete("/delete", authenticateApiKey, checkAuthenticated, DeleteUser);
 
 // Password reset routes (public)
 router.post("/reset", Reset);
@@ -89,34 +90,36 @@ router.get("/auth/status", checkAuthenticated, (req, res) => {
 });
 
 // Upload profile picture route (protected)
-router.post(
-  "/upload",
-  checkAuthenticated,
-  upload.single("profilePicture"),
- Upload 
-);
+router.post("/upload", authenticateApiKey,checkAuthenticated, upload.single("profilePicture"), Upload);
 
-// Like a blog (protected)
-router.post("/blog/:id/like", checkGuest,checkAuthenticated, Like);
+// Blog like/unlike routes (protected)
+router.post("/blog/:id/like", authenticateApiKey, checkGuest, checkAuthenticated, Like);
+router.post("/blog/:id/unlike", authenticateApiKey, checkGuest, checkAuthenticated, Unlike);
+router.post("/blog/:id/dislike", authenticateApiKey, checkGuest, checkAuthenticated, Dislike);
+router.post("/blog/:id/undislike", authenticateApiKey, checkGuest, checkAuthenticated, Undislike);
 
-// Unlike a blog (protected)
-router.post("/blog/:id/unlike", checkGuest,checkAuthenticated, Unlike);
-
-// Dislike a blog (protected)
-router.post("/blog/:id/dislike", checkGuest,checkAuthenticated, Dislike);
-
-// Undislike a blog (protected)
-router.post("/blog/:id/undislike", checkGuest,checkAuthenticated, Undislike);
-
-// Get likes count for a blog (protected)
-router.get("/blog/:id/likes/count", checkAuthenticated, LikeCount);
-
-// Get dislikes count for a blog (protected)
-router.get("/blog/:id/dislikes/count", checkAuthenticated, DislikeCount);
+// Blog likes/dislikes count routes (protected)
+router.get("/blog/:id/likes/count",authenticateApiKey, checkAuthenticated, LikeCount);
+router.get("/blog/:id/dislikes/count",authenticateApiKey, checkAuthenticated, DislikeCount);
 
 // Get user by ID (protected)
 router.get("/:id", checkAuthenticated, GetUserByID);
 
-router.patch("/settings", checkAuthenticated, checkGuest,Settings);
+// User settings route (protected)
+router.patch("/settings", authenticateApiKey,checkAuthenticated, checkGuest, Settings);
+
+// Generate API key route (protected)
+router.post("/generate-api-key", checkAuthenticated, async (req, res) => {
+  try {
+    const apiKey = generateApiKey();
+    req.user.apiKey = apiKey;
+    await req.user.save();
+    res.status(200).json({ apiKey });
+  } catch (error) {
+    console.error("Error generating API key:", error);
+    res.status(500).json({ error: "Failed to generate API key" });
+  }
+});
 
 module.exports = router;
+

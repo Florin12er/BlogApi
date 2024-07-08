@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
 const Blog = require("../models/Blog");
+const User = require("../models/User");
 
 dotenv.config();
 
@@ -47,18 +48,47 @@ async function checkCommentOwnership(req, res, next) {
 
     // Check if the authenticated user is the owner of the comment
     if (!req.user || req.user.username !== comment.user.username) {
-      return res.status(403).json({ message: "You are not authorized to perform this action" });
+      return res
+        .status(403)
+        .json({ message: "You are not authorized to perform this action" });
     }
 
     next(); // Proceed to the next middleware or controller if authorized
   } catch (error) {
     console.error("Error in checkCommentOwnership:", error);
-    res.status(500).json({ message: "Error checking comment ownership", error });
+    res
+      .status(500)
+      .json({ message: "Error checking comment ownership", error });
   }
 }
+const authenticateApiKey = async (req, res, next) => {
+  const apiKey = req.headers["x-api-key"];
+  if (!apiKey) {
+    return res.status(401).json({ message: "API key missing" });
+  }
+
+  const user = await User.findOne({ apiKey });
+  if (!user) {
+    return res.status(401).json({ message: "Invalid API key" });
+  }
+
+  req.user = user;
+  next();
+};
+// Middleware to check if the user is a guest
+const checkGuest = (req, res, next) => {
+  if (req.user.isGuest) {
+    return next();
+  }
+  res
+    .status(403)
+    .json({ message: "Access forbidden: guests cannot perform this action." });
+};
 
 module.exports = {
   checkAuthenticated,
   checkNotAuthenticated,
   checkCommentOwnership,
+  authenticateApiKey,
+  checkGuest,
 };
