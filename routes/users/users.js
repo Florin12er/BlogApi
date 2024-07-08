@@ -65,7 +65,9 @@ router.post("/guest", async (req, res) => {
     await guestUser.save();
 
     // Generate a JWT token for the guest user
-    const token = jwt.sign({ userId: guestUser._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    const token = jwt.sign({ userId: guestUser._id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
 
     res.json({ token, userId: guestUser._id });
   } catch (error) {
@@ -90,30 +92,78 @@ router.get("/auth/status", checkAuthenticated, (req, res) => {
 });
 
 // Upload profile picture route (protected)
-router.post("/upload", authenticateApiKey,checkAuthenticated, upload.single("profilePicture"), Upload);
+router.post(
+  "/upload",
+  authenticateApiKey,
+  checkAuthenticated,
+  upload.single("profilePicture"),
+  Upload,
+);
 
 // Blog like/unlike routes (protected)
-router.post("/blog/:id/like", authenticateApiKey, checkGuest, checkAuthenticated, Like);
-router.post("/blog/:id/unlike", authenticateApiKey, checkGuest, checkAuthenticated, Unlike);
-router.post("/blog/:id/dislike", authenticateApiKey, checkGuest, checkAuthenticated, Dislike);
-router.post("/blog/:id/undislike", authenticateApiKey, checkGuest, checkAuthenticated, Undislike);
+router.post(
+  "/blog/:id/like",
+  authenticateApiKey,
+  checkGuest,
+  checkAuthenticated,
+  Like,
+);
+router.post(
+  "/blog/:id/unlike",
+  authenticateApiKey,
+  checkGuest,
+  checkAuthenticated,
+  Unlike,
+);
+router.post(
+  "/blog/:id/dislike",
+  authenticateApiKey,
+  checkGuest,
+  checkAuthenticated,
+  Dislike,
+);
+router.post(
+  "/blog/:id/undislike",
+  authenticateApiKey,
+  checkGuest,
+  checkAuthenticated,
+  Undislike,
+);
 
 // Blog likes/dislikes count routes (protected)
-router.get("/blog/:id/likes/count",authenticateApiKey, checkAuthenticated, LikeCount);
-router.get("/blog/:id/dislikes/count",authenticateApiKey, checkAuthenticated, DislikeCount);
+router.get(
+  "/blog/:id/likes/count",
+  authenticateApiKey,
+  checkAuthenticated,
+  LikeCount,
+);
+router.get(
+  "/blog/:id/dislikes/count",
+  authenticateApiKey,
+  checkAuthenticated,
+  DislikeCount,
+);
 
 // Get user by ID (protected)
 router.get("/:id", checkAuthenticated, GetUserByID);
 
 // User settings route (protected)
-router.patch("/settings", authenticateApiKey,checkAuthenticated, checkGuest, Settings);
+router.patch(
+  "/settings",
+  authenticateApiKey,
+  checkAuthenticated,
+  checkGuest,
+  Settings,
+);
 
 // Generate API key route (protected)
 router.post("/generate-api-key", checkAuthenticated, async (req, res) => {
   try {
     const apiKey = generateApiKey();
-    req.user.apiKey = apiKey;
-    await req.user.save();
+    const user = new User({
+      apiKey: apiKey,
+    });
+    await user.save();
     res.status(200).json({ apiKey });
   } catch (error) {
     console.error("Error generating API key:", error);
@@ -122,4 +172,3 @@ router.post("/generate-api-key", checkAuthenticated, async (req, res) => {
 });
 
 module.exports = router;
-
