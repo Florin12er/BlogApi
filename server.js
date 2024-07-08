@@ -53,19 +53,17 @@ const Blogs = require("./routes/blogs/blogs.js");
 app.use("/user", Users);
 app.use("/blog", Blogs);
 
-// GitHub authentication route
-app.get(
-  "/auth/github",
-  passport.authenticate("github", { scope: ["user:email"] }),
-);
+app.get("/auth/github", (req, res, next) => {
+  const redirectUri = `${req.headers.origin}/auth/github/callback`;
+  passport.authenticate("github", { scope: ["user:email"] })(req, res, next);
+});
 
-// GitHub callback route
 app.get("/auth/github/callback", (req, res, next) => {
   passport.authenticate("github", (err, user, info) => {
     if (err) {
       return res
-        .status(500)
-        .json({ message: "Internal server error", error: err });
+       .status(500)
+       .json({ message: "Internal server error", error: err });
     }
     if (!user) {
       return res.status(401).json({ message: "Authentication failed", info });
@@ -79,31 +77,23 @@ app.get("/auth/github/callback", (req, res, next) => {
       const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
         expiresIn: "1h",
       });
-      const allowedOrigins = [
-        "https://blog-maker-two.vercel.app",
-        "https://blogs-nine-steel.vercel.app",
-        // ...
-      ];
-      const redirectUrl = allowedOrigins.includes(req.headers.origin)
-        ? `${req.headers.origin}/auth/github/callback?token=${token}`
-        : "https://default-domain.com/auth/github/callback?token=${token}";
-
-      res.redirect(redirectUrl);
+      const redirectUri = `${req.headers.origin}/auth/github/callback?token=${token}`;
+      res.redirect(redirectUri);
     });
   })(req, res, next);
 });
 
-app.get(
-  "/auth/google",
-  passport.authenticate("google", { scope: ["profile", "email"] }),
-);
+app.get("/auth/google", (req, res, next) => {
+  const redirectUri = `${req.headers.origin}/auth/google/callback`;
+  passport.authenticate("google", { scope: ["profile", "email"] })(req, res, next);
+});
 
 app.get("/auth/google/callback", (req, res, next) => {
   passport.authenticate("google", (err, user, info) => {
     if (err) {
       return res
-        .status(500)
-        .json({ message: "Internal server error", error: err });
+       .status(500)
+       .json({ message: "Internal server error", error: err });
     }
     if (!user) {
       return res.status(401).json({ message: "Authentication failed", info });
@@ -117,16 +107,8 @@ app.get("/auth/google/callback", (req, res, next) => {
       const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
         expiresIn: "1h",
       });
-      const allowedOrigins = [
-        "https://blog-maker-two.vercel.app",
-        "https://blogs-nine-steel.vercel.app",
-        // ...
-      ];
-      const redirectUrl = allowedOrigins.includes(req.headers.origin)
-        ? `${req.headers.origin}/auth/google/callback?token=${token}`
-        : "https://default-domain.com/auth/google/callback?token=${token}";
-
-      res.redirect(redirectUrl);
+      const redirectUri = `${req.headers.origin}/auth/google/callback?token=${token}`;
+      res.redirect(redirectUri);
     });
   })(req, res, next);
 });
@@ -143,3 +125,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+
