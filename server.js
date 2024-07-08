@@ -82,13 +82,14 @@ app.get("/auth/github/callback", (req, res, next) => {
       // Determine which domain to redirect based on the request origin
       const redirectUrl =
         req.headers.origin === "https://blogs-nine-steel.vercel.app"
-          ? "https://blog-maker-two.vercel.app/auth/github/callback"
-          : "https://blogs-nine-steel.vercel.app/auth/github/callback";
+          ? "https://blogs-nine-steel.vercel.app/auth/github/callback"
+          : "https://blog-maker-two.vercel.app/auth/github/callback";
 
       res.redirect(`${redirectUrl}?token=${token}`);
     });
   })(req, res, next);
 });
+
 app.get(
   "/auth/google",
   passport.authenticate("google", { scope: ["profile", "email"] }),
@@ -116,8 +117,8 @@ app.get("/auth/google/callback", (req, res, next) => {
       // Determine which domain to redirect based on the request origin
       const redirectUrl =
         req.headers.origin === "https://blogs-nine-steel.vercel.app"
-          ? "https://blog-maker-two.vercel.app/auth/google/callback"
-          : "https://blogs-nine-steel.vercel.app/auth/google/callback";
+          ? "https://blogs-nine-steel.vercel.app/auth/google/callback"
+          : "https://blog-maker-two.vercel.app/auth/google/callback";
 
       res.redirect(`${redirectUrl}?token=${token}`);
     });
@@ -136,3 +137,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+
