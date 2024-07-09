@@ -9,26 +9,18 @@ function checkAuthenticated(req, res, next) {
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith("Bearer ")) {
     const token = authHeader.split(" ")[1];
-    jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
       if (err) {
         return res.status(401).json({ error: "Unauthorized" });
       }
-      try {
-        const user = await User.findById(decoded.userId);
-        if (!user) {
-          return res.status(401).json({ error: "Unauthorized" });
-        }
-        req.user = user;
-        next();
-      } catch (err) {
-        console.error("Error fetching user from database:", err);
-        return res.status(500).json({ error: "Internal Server Error" });
-      }
+      req.user = decoded;
+      next();
     });
   } else {
     return res.status(401).json({ error: "Unauthorized" });
   }
 }
+
 
 function checkNotAuthenticated(req, res, next) {
   const authHeader = req.headers.authorization;
