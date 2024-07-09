@@ -157,24 +157,15 @@ router.patch(
 );
 
 // Generate API key route (protected)
-router.post("/generate-api-key", async (req, res) => {
+router.post("/generate-api-key", checkAuthenticated, async (req, res) => {
   try {
     const apiKey = generateApiKey();
-    
-    // Retrieve authenticated user from req.user
-    const user = req.user;
-    
-    // Update user's apiKey field
-    user.apiKey = apiKey;
-    
-    // Save user with updated apiKey
-    await user.save();
-    
+    req.user.apiKey = apiKey;
+    await req.user.save();
     res.status(200).json({ apiKey });
   } catch (error) {
     console.error("Error generating API key:", error);
     res.status(500).json({ error: "Failed to generate API key" });
   }
 });
-
 module.exports = router;
