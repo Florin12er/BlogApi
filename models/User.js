@@ -1,13 +1,12 @@
 const mongoose = require("mongoose");
-const Schema = mongoose.Schema;
-const bcrypt = require("bcrypt");
 const crypto = require("crypto");
+require('dotenv').config();
 
-// Encryption key and initialization vector (IV)
+
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY; // 32 characters for AES-256
 const IV_LENGTH = 16; // For AES, this is always 16
 
-const userSchema = new Schema({
+const userSchema = new mongoose.Schema({
   username: { type: String, required: true },
   email: { type: String, unique: true },
   password: { type: String },
@@ -20,8 +19,8 @@ const userSchema = new Schema({
   apiKey: { type: String },
 });
 
-// Method to encrypt text
 userSchema.methods.encryptText = function (text) {
+  console.log("Text to encrypt:", text); // Debugging log
   const iv = crypto.randomBytes(IV_LENGTH);
   const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
   let encrypted = cipher.update(text);
@@ -29,7 +28,6 @@ userSchema.methods.encryptText = function (text) {
   return `${iv.toString('hex')}:${encrypted.toString('hex')}`;
 };
 
-// Method to decrypt text
 userSchema.methods.decryptText = function (text) {
   const textParts = text.split(':');
   const iv = Buffer.from(textParts.shift(), 'hex');
