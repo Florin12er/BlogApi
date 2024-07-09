@@ -1,6 +1,11 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
+
+// Encryption key and initialization vector (IV)
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY; // 32 characters for AES-256
+const IV_LENGTH = 16; // For AES, this is always 16
 
 const userSchema = new Schema({
   username: { type: String, required: true },
@@ -12,15 +17,27 @@ const userSchema = new Schema({
   resetCodeExpires: { type: Date },
   profilePicture: { type: String },
   isGuest: { type: Boolean, default: false },
-  apiKey: { type: String, unique: true }, // Add API key field
+  apiKey: { type: String },
 });
 
-userSchema.methods.isValidPassword = function (password) {
-  return bcrypt.compareSync(password, this.password);
+// Method to encrypt text
+userSchema.methods.encryptText = function (text) {
+  const iv = crypto.randomBytes(IV_LENGTH);
+  const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
+  let encrypted = cipher.update(text);
+  encrypted = Buffer.concat([encrypted, cipher.final()]);
+  return `${iv.toString('hex')}:${encrypted.toString('hex')}`;
 };
-userSchema.methods.updateUserDetails = async function (updates) {
-  Object.assign(this, updates);
-  await this.save();
+
+// Method to decrypt text
+userSchema.methods.decryptText = function (text) {
+  const textParts = text.split(':');
+  const iv = Buffer.from(textParts.shift(), 'hex');
+  const encryptedText = Buffer.from(textParts.join(':'), 'hex');
+  const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
+  let decrypted = decipher.update(encryptedText);
+  decrypted = Buffer.concat([decrypted, decipher.final()]);
+  return decrypted.toString();
 };
 
 const User = mongoose.model("User", userSchema);
