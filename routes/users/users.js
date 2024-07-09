@@ -159,8 +159,7 @@ router.patch(
 // Generate API key route (protected)
 router.post("/generate-api-key", checkAuthenticated, async (req, res) => {
   try {
-    const userId = req.user._id;
-    const user = await User.findById(userId);
+    const user = await User.findById(req.user.id);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -174,5 +173,5 @@ router.post("/generate-api-key", checkAuthenticated, async (req, res) => {
     console.error("Error generating API key:", error);
     res.status(500).json({ error: "Failed to generate API key" });
   }
-})
+});
 module.exports = router;
