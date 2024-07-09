@@ -157,7 +157,7 @@ router.patch(
 );
 
 // Generate API key route (protected)
-router.post("/generate-api-key", checkAuthenticated, async (req, res) => {
+router.post("/generate-api-key", async (req, res) => {
   try {
     const apiKey = generateApiKey();
     
