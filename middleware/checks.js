@@ -4,31 +4,31 @@ const Blog = require("../models/Blog");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
-const checkAuthenticated = async (req, res, next) => {
+
+function checkAuthenticated(req, res, next) {
   const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Unauthorized' });
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    const token = authHeader.split(" ")[1];
+    jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
+      if (err) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      try {
+        const user = await User.findById(decoded.id);
+        if (!user) {
+          return res.status(404).json({ error: "User not found" });
+        }
+        req.user = user;
+        next();
+      } catch (error) {
+        console.error("Error fetching user:", error);
+        res.status(500).json({ error: "Internal server error" });
+      }
+    });
+  } else {
+    return res.status(401).json({ error: "Unauthorized" });
   }
-
-  const token = authHeader.split(' ')[1];
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
-
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    req.user = user; // Set req.user with the user object
-    next();
-  } catch (error) {
-    console.error('Error verifying JWT token:', error);
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-};
-
+}
 
 function checkNotAuthenticated(req, res, next) {
   const authHeader = req.headers.authorization;
@@ -70,34 +70,20 @@ async function checkCommentOwnership(req, res, next) {
       .json({ message: "Error checking comment ownership", error });
   }
 }
-
 const authenticateApiKey = async (req, res, next) => {
-  const apiKey = req.headers['x-api-key'];
-
+  const apiKey = req.headers["x-api-key"];
   if (!apiKey) {
-    return res.status(401).json({ message: 'API key missing' });
+    return res.status(401).json({ message: "API key missing" });
   }
 
-  try {
-    const user = req.user;
-
-    if (!user || typeof user.decryptText !== 'function') {
-      return res.status(401).json({ message: 'Invalid user or decryptText method not available' });
-    }
-
-    const decryptedApiKey = user.decryptText(user.apiKey);
-    if (apiKey !== decryptedApiKey) {
-      return res.status(401).json({ message: 'Invalid API key' });
-    }
-
-    req.decryptedApiKey = decryptedApiKey; // Optionally store decrypted API key
-    next();
-  } catch (error) {
-    console.error('Error authenticating API key:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+  const user = await User.findOne({ apiKey });
+  if (!user) {
+    return res.status(401).json({ message: "Invalid API key" });
   }
+
+  req.user = user;
+  next();
 };
-
 // Middleware to check if the user is a guest
 const checkGuest = (req, res, next) => {
   if (req.user.isGuest) {
