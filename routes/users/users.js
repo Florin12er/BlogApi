@@ -26,6 +26,7 @@ const { Dislike, Undislike, DislikeCount } = require("./Dislikes.js");
 const Settings = require("./Setting.js");
 const passport = require("passport");
 const Upload = require("./upload.js");
+const apiKeyLimiter = require("../../middleware/rateLimit.js");
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -155,21 +156,23 @@ router.patch(
   checkGuest,
   Settings,
 );
-
-// Generate API key route (protected)
-router.post("/generate-api-key", checkAuthenticated, async (req, res) => {
+// get the api key
+router.get("/get-api-key", checkAuthenticated, async (req, res) => {
   try {
-    const apiKey = generateApiKey();
-    const encryptedApiKey = req.user.encryptText(apiKey); // Encrypt the API key
-    req.user.apiKey = encryptedApiKey;
-    await req.user.save();
-    res.status(200).json({ apiKey });
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const decryptedApiKey = user.decryptText(user.apiKey);
+    res.status(200).json({ apiKey: decryptedApiKey });
   } catch (error) {
-    console.error("Error generating API key:", error);
-    res.status(500).json({ error: "Failed to generate API key" });
+    console.error("Error retrieving API key:", error);
+    res.status(500).json({ error: "Failed to retrieve API key" });
   }
 });
-router.post("/generate-api-key", checkAuthenticated, async (req, res) => {
+
+// Generate API key route (protected)
+router.post("/generate-api-key", checkAuthenticated,apiKeyLimiter, async (req, res) => {
   try {
     const apiKey = generateApiKey();
     console.log("Generated API Key:", apiKey); // Add logging
