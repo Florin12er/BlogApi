@@ -95,7 +95,6 @@ const authenticateApiKey = async (req, res, next) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
-
 // Middleware to check if the user is a guest
 const checkGuest = (req, res, next) => {
   if (req.user.isGuest) {
