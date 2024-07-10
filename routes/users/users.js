@@ -172,14 +172,14 @@ router.get("/get-api-key", checkAuthenticated, async (req, res) => {
   }
 });
 // Generate API key route (protected)
-router.post("/generate-api-key", checkAuthenticated,apiKeyLimiter, async (req, res) => {
+router.post("/generate-api-key", checkAuthenticated, async (req, res) => {
   try {
     const apiKey = generateApiKey();
     const encryptedApiKey = req.user.encryptText(apiKey); // Encrypt the API key
     console.log("Encrypted API Key:", encryptedApiKey); // Add logging
     req.user.apiKey = encryptedApiKey;
     await req.user.save();
-    res.status(200).json({ encryptedApiKey });
+    res.status(200).json({ apiKey });
   } catch (error) {
     console.error("Error generating API key:", error);
     res.status(500).json({ error: "Failed to generate API key" });
