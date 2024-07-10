@@ -5,30 +5,30 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
 
-function checkAuthenticated(req, res, next) {
+const checkAuthenticated = async (req, res, next) => {
   const authHeader = req.headers.authorization;
-  if (authHeader && authHeader.startsWith("Bearer ")) {
-    const token = authHeader.split(" ")[1];
-    jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
-      if (err) {
-        return res.status(401).json({ error: "Unauthorized" });
-      }
-      try {
-        const user = await User.findById(decoded.id);
-        if (!user) {
-          return res.status(404).json({ error: "User not found" });
-        }
-        req.user = user;
-        next();
-      } catch (error) {
-        console.error("Error fetching user:", error);
-        res.status(500).json({ error: "Internal server error" });
-      }
-    });
-  } else {
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).json({ error: "Unauthorized" });
   }
-}
+
+  const token = authHeader.split(" ")[1];
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    req.user = user; // Set req.user with the user object
+    next();
+  } catch (error) {
+    console.error("Error verifying JWT token:", error);
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+};
 
 function checkNotAuthenticated(req, res, next) {
   const authHeader = req.headers.authorization;
