@@ -70,19 +70,31 @@ async function checkCommentOwnership(req, res, next) {
       .json({ message: "Error checking comment ownership", error });
   }
 }
+
 const authenticateApiKey = async (req, res, next) => {
   const apiKey = req.headers["x-api-key"];
+  
   if (!apiKey) {
     return res.status(401).json({ message: "API key missing" });
   }
 
-  const user = await User.findOne({ apiKey });
-  if (!user) {
-    return res.status(401).json({ message: "Invalid API key" });
-  }
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
 
-  req.user = user;
-  next();
+    const decryptedApiKey = user.decryptText(user.apiKey);
+    if (apiKey !== decryptedApiKey) {
+      return res.status(401).json({ message: "Invalid API key" });
+    }
+
+    req.user = user;
+    next();
+  } catch (error) {
+    console.error("Error authenticating API key:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
 };
 // Middleware to check if the user is a guest
 const checkGuest = (req, res, next) => {
