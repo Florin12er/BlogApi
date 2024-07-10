@@ -20,7 +20,6 @@ const userSchema = new mongoose.Schema({
 });
 
 userSchema.methods.encryptText = function (text) {
-  console.log("Text to encrypt:", text); // Debugging log
   const iv = crypto.randomBytes(IV_LENGTH);
   const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
   let encrypted = cipher.update(text);
@@ -37,7 +36,6 @@ userSchema.methods.decryptText = function (text) {
   decrypted = Buffer.concat([decrypted, decipher.final()]);
   return decrypted.toString();
 };
-
 const User = mongoose.model("User", userSchema);
 
 module.exports = User;
