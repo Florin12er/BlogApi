@@ -5,26 +5,27 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
 
-async function checkAuthenticated(req, res, next) {
+function checkAuthenticated(req, res, next) {
   const authHeader = req.headers.authorization;
-  
-  try {
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-      const token = authHeader.split(" ")[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-      const user = await User.findById(decoded.id);
-      if (!user) {
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    const token = authHeader.split(" ")[1];
+    jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
+      if (err) {
         return res.status(401).json({ error: "Unauthorized" });
       }
-
-      req.user = user;
-      next();
-    } else {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
-  } catch (error) {
-    console.error("Error authenticating user:", error);
+      try {
+        const user = await User.findById(decoded.id);
+        if (!user) {
+          return res.status(404).json({ error: "User not found" });
+        }
+        req.user = user;
+        next();
+      } catch (error) {
+        console.error("Error fetching user:", error);
+        res.status(500).json({ error: "Internal server error" });
+      }
+    });
+  } else {
     return res.status(401).json({ error: "Unauthorized" });
   }
 }
