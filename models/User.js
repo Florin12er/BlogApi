@@ -1,6 +1,6 @@
+require('dotenv').config();
 const mongoose = require("mongoose");
 const crypto = require("crypto");
-require('dotenv').config();
 
 
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY; // 32 characters for AES-256
