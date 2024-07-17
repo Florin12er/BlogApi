@@ -51,7 +51,7 @@ router.get("/", checkAuthenticated, ShowAllUsers);
 router.post("/register", checkNotAuthenticated, PostRegister);
 
 // Login route (accessible only for unauthenticated users)
-router.post("/login", checkNotAuthenticated, PostLogin);
+router.post("/login", PostLogin);
 
 // Route to create a guest user
 router.post("/guest", async (req, res) => {
