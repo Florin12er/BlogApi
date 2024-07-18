@@ -2,7 +2,14 @@ const Blog = require("../../models/Blog");
 
 const getBlog = async (id) => {
   try {
-    const blog = await Blog.findById(id);
+    const blog = await Blog.findById(id)
+      .populate({
+        path: 'comments',
+        populate: {
+          path: 'user',
+          select: 'username _id'
+        }
+      });
     if (!blog) {
       throw new Error("Blog not found");
     }
@@ -12,6 +19,7 @@ const getBlog = async (id) => {
     throw new Error("Failed to retrieve blog information");
   }
 };
+
 async function GetUserBlogById(req, res) {
   try {
     const id = req.params.id;
@@ -24,3 +32,4 @@ async function GetUserBlogById(req, res) {
 }
 
 module.exports = GetUserBlogById;
+
