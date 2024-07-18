@@ -4,7 +4,7 @@ async function ShowAllBlogs(req, res) {
   try {
     // Get page and limit from query parameters, set defaults if not provided
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || 15;
 
     // Calculate the number of documents to skip
     const skip = (page - 1) * limit;
