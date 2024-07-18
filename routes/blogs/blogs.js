@@ -3,7 +3,7 @@ const router = express.Router();
 const Blog = require("../../models/Blog");
 
 // Middleware for checking authentication
-const { checkAuthenticated, checkCommentOwnership, checkGuest, authenticateApiKey } = require("../../middleware/checks");
+const { checkAuthenticated, checkGuest, authenticateApiKey } = require("../../middleware/checks");
 const AddBlog = require("./addBlog");
 const ShowAllBlogs = require("./showAllBlogs");
 const ShowAllUserBlogs = require("./showAllBlogsUser");
