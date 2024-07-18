@@ -3,7 +3,7 @@ const User = require("../../models/User");
 
 async function PostComment(req, res) {
   const { content } = req.body;
-  const userId = req.user.id; // Get the authenticated user's ID
+  const userId = req.user.username; // Get the authenticated user's ID
 
   try {
     const blog = await Blog.findById(req.params.id);
@@ -31,7 +31,7 @@ async function PostComment(req, res) {
 
 async function UpdateComment(req, res) {
   const { content } = req.body;
-  const userId = req.user._id; // Get the authenticated user's ID
+  const userId = req.user.username; // Get the authenticated user's ID
 
   try {
     const blog = await Blog.findById(req.params.blogId);
@@ -63,7 +63,7 @@ async function UpdateComment(req, res) {
 }
 
 async function DeleteComment(req, res) {
-  const userId = req.user._id; // Get the authenticated user's ID
+  const userId = req.user.username; // Get the authenticated user's ID
 
   try {
     const blog = await Blog.findById(req.params.blogId);
