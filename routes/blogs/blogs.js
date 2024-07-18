@@ -17,6 +17,7 @@ const {
   DeleteComment,
   ShowAllComments,
 } = require("./comments");
+const searchBlogs = require("./searchBlogs");
 
 // GET all blogs route
 router.get("/", authenticateApiKey,checkAuthenticated, ShowAllBlogs);
@@ -41,5 +42,7 @@ router.put("/:blogId/comment/:commentId", authenticateApiKey,checkGuest,checkAut
 router.delete("/:blogId/comment/:commentId",authenticateApiKey,checkGuest, checkAuthenticated, DeleteComment);
 // GET all comments for a blog
 router.get("/:id/comments",checkGuest,authenticateApiKey, checkAuthenticated, ShowAllComments);
+
+router.get("/search", authenticateApiKey, checkAuthenticated, searchBlogs)
 
 module.exports = router;
