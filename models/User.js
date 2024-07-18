@@ -28,14 +28,30 @@ userSchema.methods.encryptText = function (text) {
 };
 
 userSchema.methods.decryptText = function (text) {
-  const textParts = text.split(':');
-  const iv = Buffer.from(textParts.shift(), 'hex');
-  const encryptedText = Buffer.from(textParts.join(':'), 'hex');
-  const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
-  let decrypted = decipher.update(encryptedText);
-  decrypted = Buffer.concat([decrypted, decipher.final()]);
-  return decrypted.toString();
+  if (!text) {
+    console.log('No text provided for decryption');
+    return null;
+  }
+
+  try {
+    const textParts = text.split(':');
+    if (textParts.length < 2) {
+      console.log('Invalid encrypted text format');
+      return null;
+    }
+
+    const iv = Buffer.from(textParts.shift(), 'hex');
+    const encryptedText = Buffer.from(textParts.join(':'), 'hex');
+    const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
+    let decrypted = decipher.update(encryptedText);
+    decrypted = Buffer.concat([decrypted, decipher.final()]);
+    return decrypted.toString();
+  } catch (error) {
+    console.error('Error decrypting text:', error);
+    return null;
+  }
 };
+
 const User = mongoose.model("User", userSchema);
 
 module.exports = User;

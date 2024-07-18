@@ -81,7 +81,18 @@ const authenticateApiKey = async (req, res, next) => {
     const users = await User.find({});
     
     // Find the user whose decrypted API key matches the provided key
-    const user = users.find(u => u.decryptText(u.apiKey) === apiKey);
+    const user = users.find(u => {
+      if (!u.apiKey) {
+        console.log(`User ${u._id} has no API key`);
+        return false;
+      }
+      const decryptedApiKey = u.decryptText(u.apiKey);
+      if (decryptedApiKey === null) {
+        console.log(`Failed to decrypt API key for user ${u._id}`);
+        return false;
+      }
+      return decryptedApiKey === apiKey;
+    });
 
     if (!user) {
       return res.status(401).json({ message: "Invalid API key" });
