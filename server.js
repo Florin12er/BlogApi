@@ -9,6 +9,9 @@ const jwt = require("jsonwebtoken");
 const initializePassport = require("./config/passport-config.js");
 const session = require("express-session");
 
+// Load environment variables
+require("dotenv").config();
+
 const corsOptions = {
   origin: [
     "https://blog-maker-two.vercel.app",
@@ -25,9 +28,6 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-// Load environment variables
-require("dotenv").config();
-
 // Initialize Passport
 initializePassport(passport);
 
@@ -37,14 +37,19 @@ app.use(express.json());
 app.use(methodOverride("_method"));
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "keyboard cat",
+    secret: process.env.SESSION_SECRET,
     resave: false,
-    saveUninitialized: true,
-    cookie: { secure: true }, // Set secure cookie if using HTTPS
-    proxy: true, // Set this to true if you're behind a reverse proxy (e.g., Heroku)
-  }),
+    saveUninitialized: false,
+    cookie: { 
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    },
+    proxy: true,
+  })
 );
 app.use(passport.initialize());
+app.use(passport.session());
 
 // Routes
 const Users = require("./routes/users/users.js");
@@ -53,102 +58,46 @@ const Blogs = require("./routes/blogs/blogs.js");
 app.use("/user", Users);
 app.use("/blog", Blogs);
 
-// GitHub authentication route
-app.get(
-  "/auth/github",
-  passport.authenticate("github", { scope: ["user:email"] }),
-);
-
-// GitHub callback route
-app.get("/auth/github/callback", (req, res, next) => {
-  passport.authenticate("github", (err, user, info) => {
+// Helper function for authentication
+const authenticateAndRedirect = (strategy) => (req, res, next) => {
+  passport.authenticate(strategy, { session: false }, (err, user, info) => {
     if (err) {
-      return res
-        .status(500)
-        .json({ message: "Internal server error", error: err });
+      return res.status(500).json({ message: "Internal server error", error: err.message });
     }
     if (!user) {
       return res.status(401).json({ message: "Authentication failed", info });
     }
 
-    req.logIn(user, (err) => {
-      if (err) {
-        return res.status(500).json({ message: "Login failed", error: err });
-      }
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
-      const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
-        expiresIn: "1h",
-      });
-      
-      // Determine which domain to redirect based on the request origin
-      let redirectUrl;
-      switch (req.headers.origin) {
-        case "https://blogs-nine-steel.vercel.app":
-          redirectUrl = "https://blog-maker-two.vercel.app/auth/github/callback";
-          break;
-        case "https://blog-maker-two.vercel.app":
-          redirectUrl = "https://blogs-nine-steel.vercel.app/auth/github/callback";
-          break;
-        default:
-          redirectUrl = "https://blogs-nine-steel.vercel.app/auth/github/callback"; // Default case
-      }
-
-      res.redirect(`${redirectUrl}?token=${token}`);
-    });
+    const redirectUrl = determineRedirectUrl(req.headers.origin, strategy);
+    res.redirect(`${redirectUrl}?token=${token}`);
   })(req, res, next);
-});
+};
 
-// Google authentication route
-app.get(
-  "/auth/google",
-  passport.authenticate("google", { scope: ["profile", "email"] }),
-);
+// Helper function to determine redirect URL
+const determineRedirectUrl = (origin, strategy) => {
+  const baseUrls = {
+    "https://blogs-nine-steel.vercel.app": "https://blog-maker-two.vercel.app",
+    "https://blog-maker-two.vercel.app": "https://blogs-nine-steel.vercel.app",
+  };
+  const baseUrl = baseUrls[origin] || "https://blogs-nine-steel.vercel.app";
+  return `${baseUrl}/auth/${strategy}/callback`;
+};
 
-// Google callback route
-app.get("/auth/google/callback", (req, res, next) => {
-  passport.authenticate("google", (err, user, info) => {
-    if (err) {
-      return res
-        .status(500)
-        .json({ message: "Internal server error", error: err });
-    }
-    if (!user) {
-      return res.status(401).json({ message: "Authentication failed", info });
-    }
+// GitHub authentication routes
+app.get("/auth/github", passport.authenticate("github", { scope: ["user:email"] }));
+app.get("/auth/github/callback", authenticateAndRedirect("github"));
 
-    req.logIn(user, (err) => {
-      if (err) {
-        return res.status(500).json({ message: "Login failed", error: err });
-      }
-
-      const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
-        expiresIn: "1h",
-      });
-      
-      // Determine which domain to redirect based on the request origin
-      let redirectUrl;
-      switch (req.headers.origin) {
-        case "https://blogs-nine-steel.vercel.app":
-          redirectUrl = "https://blog-maker-two.vercel.app/auth/google/callback";
-          break;
-        case "https://blog-maker-two.vercel.app":
-          redirectUrl = "https://blogs-nine-steel.vercel.app/auth/google/callback";
-          break;
-        default:
-          redirectUrl = "https://blogs-nine-steel.vercel.app/auth/google/callback"; // Default case
-      }
-
-      res.redirect(`${redirectUrl}?token=${token}`);
-    });
-  })(req, res, next);
-});
+// Google authentication routes
+app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+app.get("/auth/google/callback", authenticateAndRedirect("google"));
 
 // MongoDB connection
 const dbUrl = process.env.DATABASEURL;
-mongoose.connect(dbUrl);
-const db = mongoose.connection;
-db.on("error", (error) => console.error(error));
-db.once("open", () => console.log("Connected to Mongoose"));
+mongoose.connect(dbUrl, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log("Connected to MongoDB"))
+  .catch((error) => console.error("MongoDB connection error:", error));
 
 // Start server
 const PORT = process.env.PORT || 3000;
