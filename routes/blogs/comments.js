@@ -3,7 +3,7 @@ const User = require("../../models/User");
 
 async function PostComment(req, res) {
   const { content } = req.body;
-  const userId = await Blog.findById(req.params.id);
+  const userId = req.user._id; // Get the authenticated user's ID
 
   try {
     const blog = await Blog.findById(req.params.id);
@@ -19,38 +19,19 @@ async function PostComment(req, res) {
     blog.comments.push(newComment);
     await blog.save();
 
-    res
-      .status(201)
-      .json({ message: "Comment added successfully", comment: newComment });
+    // Populate the user information
+    await blog.populate('comments.user', 'username').execPopulate();
+    const addedComment = blog.comments[blog.comments.length - 1];
+
+    res.status(201).json({ message: "Comment added successfully", comment: addedComment });
   } catch (error) {
     res.status(500).json({ message: "Error adding comment", error });
   }
 }
+
 async function UpdateComment(req, res) {
   const { content } = req.body;
-  const userId = await User.findById(req.params.id);
-
-  try {
-    const blog = await Blog.findById(req.params.blogId);
-    if (!blog) {
-      return res.status(404).json({ message: "Blog not found" });
-    }
-
-    const comment = blog.comments.id(req.params.commentId);
-    if (!comment) {
-      return res.status(404).json({ message: "Comment not found" });
-    }
-
-    comment.content = content;
-    await blog.save();
-
-    res.status(200).json({ message: "Comment updated successfully", comment });
-  } catch (error) {
-    res.status(500).json({ message: "Error updating comment", error });
-  }
-}
-async function DeleteComment(req, res) {
-  const userId = req.user._id; // Assuming req.user has the authenticated user object
+  const userId = req.user._id; // Get the authenticated user's ID
 
   try {
     const blog = await Blog.findById(req.params.blogId);
@@ -64,6 +45,42 @@ async function DeleteComment(req, res) {
     }
 
     // Check if the authenticated user is the owner of the comment
+    if (comment.user.toString() !== userId.toString()) {
+      return res.status(403).json({ message: "Not authorized to update this comment" });
+    }
+
+    comment.content = content;
+    await blog.save();
+
+    // Populate the user information
+    await blog.populate('comments.user', 'username').execPopulate();
+    const updatedComment = blog.comments.id(req.params.commentId);
+
+    res.status(200).json({ message: "Comment updated successfully", comment: updatedComment });
+  } catch (error) {
+    res.status(500).json({ message: "Error updating comment", error });
+  }
+}
+
+async function DeleteComment(req, res) {
+  const userId = req.user._id; // Get the authenticated user's ID
+
+  try {
+    const blog = await Blog.findById(req.params.blogId);
+    if (!blog) {
+      return res.status(404).json({ message: "Blog not found" });
+    }
+
+    const comment = blog.comments.id(req.params.commentId);
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+
+    // Check if the authenticated user is the owner of the comment
+    if (comment.user.toString() !== userId.toString()) {
+      return res.status(403).json({ message: "Not authorized to delete this comment" });
+    }
+
     comment.deleteOne();
     await blog.save();
 
@@ -77,7 +94,7 @@ async function ShowAllComments(req, res) {
   try {
     const blog = await Blog.findById(req.params.id).populate(
       "comments.user",
-      "username",
+      "username"
     );
     if (!blog) {
       return res.status(404).json({ message: "Blog not found" });
@@ -88,4 +105,6 @@ async function ShowAllComments(req, res) {
     res.status(500).json({ message: "Error retrieving comments", error });
   }
 }
+
 module.exports = { PostComment, UpdateComment, DeleteComment, ShowAllComments };
+
