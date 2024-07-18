@@ -18,6 +18,7 @@ const blogSchema = new Schema({
   dislikes: [{ type: Schema.Types.ObjectId, ref: "User" }],
   comments: [commentSchema], // Added comments array
 });
+blogSchema.index({ title: 'text', content: 'text', author: 'text' });
 
 const Blog = mongoose.model("Blog", blogSchema);
 
