@@ -95,7 +95,7 @@ app.get("/auth/google/callback", authenticateAndRedirect("google"));
 
 // MongoDB connection
 const dbUrl = process.env.DATABASEURL;
-mongoose.connect(dbUrl, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(dbUrl)
   .then(() => console.log("Connected to MongoDB"))
   .catch((error) => console.error("MongoDB connection error:", error));
 
