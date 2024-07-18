@@ -109,12 +109,11 @@ const authenticateApiKey = async (req, res, next) => {
 // Middleware to check if the user is a guest
 const checkGuest = (req, res, next) => {
   if (req.user.isGuest) {
-    return next();
+    return res.status(403).json({ message: "Access forbidden: guests cannot perform this action." });
   }
-  res
-    .status(403)
-    .json({ message: "Access forbidden: guests cannot perform this action." });
+  next();
 };
+
 
 module.exports = {
   checkAuthenticated,
