@@ -20,7 +20,7 @@ async function PostComment(req, res) {
     await blog.save();
 
     // Populate the user information
-    await blog.populate('comments.user', 'username').execPopulate();
+    await blog.populate('comments.user', 'username');
     const addedComment = blog.comments[blog.comments.length - 1];
 
     res.status(201).json({ message: "Comment added successfully", comment: addedComment });
