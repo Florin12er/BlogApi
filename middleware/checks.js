@@ -83,7 +83,6 @@ const authenticateApiKey = async (req, res, next) => {
     // Find the user whose decrypted API key matches the provided key
     const user = users.find(u => {
       if (!u.apiKey) {
-        console.log(`User ${u._id} has no API key`);
         return false;
       }
       const decryptedApiKey = u.decryptText(u.apiKey);
