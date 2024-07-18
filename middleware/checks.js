@@ -76,14 +76,25 @@ const authenticateApiKey = async (req, res, next) => {
     return res.status(401).json({ message: "API key missing" });
   }
 
-  const user = await User.findOne({ apiKey });
-  if (!user) {
-    return res.status(401).json({ message: "Invalid API key" });
-  }
+  try {
+    // Find all users (this is not efficient for large datasets)
+    const users = await User.find({});
+    
+    // Find the user whose decrypted API key matches the provided key
+    const user = users.find(u => u.decryptText(u.apiKey) === apiKey);
 
-  req.user = user;
-  next();
+    if (!user) {
+      return res.status(401).json({ message: "Invalid API key" });
+    }
+
+    req.user = user;
+    next();
+  } catch (error) {
+    console.error("Error authenticating API key:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
+
 // Middleware to check if the user is a guest
 const checkGuest = (req, res, next) => {
   if (req.user.isGuest) {

@@ -20,13 +20,11 @@ const {
   checkGuest,
 } = require("../../middleware/checks.js");
 const GetUserByID = require("./getUserById.js");
-const { Follow, Unfollow, Followers, Following } = require("./follow.js");
 const { Like, Unlike, LikeCount } = require("./Likes.js");
 const { Dislike, Undislike, DislikeCount } = require("./Dislikes.js");
 const Settings = require("./Setting.js");
 const passport = require("passport");
 const Upload = require("./upload.js");
-const apiKeyLimiter = require("../../middleware/rateLimit.js");
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -51,7 +49,7 @@ router.get("/", checkAuthenticated, ShowAllUsers);
 router.post("/register", checkNotAuthenticated, PostRegister);
 
 // Login route (accessible only for unauthenticated users)
-router.post("/login", PostLogin);
+router.post("/login", checkNotAuthenticated, PostLogin);
 
 // Route to create a guest user
 router.post("/guest", async (req, res) => {
