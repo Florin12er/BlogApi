@@ -32,7 +32,7 @@ async function PostComment(req, res) {
 
 async function UpdateComment(req, res) {
   const { content } = req.body;
-  const userId = req.user._id; // Get the authenticated user's ID
+  const userId = req.user._id;
 
   try {
     const blog = await Blog.findById(req.params.blogId);
@@ -54,14 +54,16 @@ async function UpdateComment(req, res) {
     await blog.save();
 
     // Populate the user information
-    await blog.populate('comments.user', 'username').execPopulate();
+    await blog.populate('comments.user', 'username');
     const updatedComment = blog.comments.id(req.params.commentId);
 
     res.status(200).json({ message: "Comment updated successfully", comment: updatedComment });
   } catch (error) {
-    res.status(500).json({ message: "Error updating comment", error });
+    console.error("Error updating comment:", error);
+    res.status(500).json({ message: "Error updating comment", error: error.message });
   }
 }
+
 
 async function DeleteComment(req, res) {
   const userId = req.user._id; // Get the authenticated user's ID
