@@ -9,17 +9,16 @@ async function searchBlogs(req, res) {
 
     const blogs = await Blog.find(
       { $text: { $search: query } },
-      { score: { $meta: "textScore" } },
+      { score: { $meta: "textScore" } }
     )
-      .sort({ score: { $meta: "textScore" } })
-      .limit(10);
+    .sort({ score: { $meta: "textScore" } })
+    .limit(10);
 
     res.json(blogs);
   } catch (error) {
-    console.error("Error searching blogs:", error);
-    res
-      .status(500)
-      .json({ message: "An error occurred while searching blogs" });
+    console.error('Error searching blogs:', error);
+    res.status(500).json({ message: "An error occurred while searching blogs" });
   }
 }
+
 module.exports = searchBlogs;

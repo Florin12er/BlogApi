@@ -43,6 +43,6 @@ router.delete("/:blogId/comment/:commentId",authenticateApiKey,checkGuest, check
 // GET all comments for a blog
 router.get("/:id/comments",checkGuest,authenticateApiKey, checkAuthenticated, ShowAllComments);
 
-router.get("/search", authenticateApiKey, checkAuthenticated, searchBlogs)
+router.get("/search", checkAuthenticated, searchBlogs)
 
 module.exports = router;

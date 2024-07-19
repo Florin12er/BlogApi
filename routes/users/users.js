@@ -8,7 +8,6 @@ const crypto = require("crypto");
 const PostLogin = require("./login.js");
 const { PostRegister } = require("./register.js");
 const User = require("../../models/User.js");
-const Blog = require("../../models/Blog.js");
 const LogOut = require("./logout.js");
 const { Reset, requestPasswordReset } = require("./reset.js");
 const ShowAllUsers = require("./showAll.js");
@@ -23,7 +22,6 @@ const GetUserByID = require("./getUserById.js");
 const { Like, Unlike, LikeCount } = require("./Likes.js");
 const { Dislike, Undislike, DislikeCount } = require("./Dislikes.js");
 const Settings = require("./Setting.js");
-const passport = require("passport");
 const Upload = require("./upload.js");
 
 // Configure multer for file uploads
