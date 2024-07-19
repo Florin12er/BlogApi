@@ -21,6 +21,7 @@ const {
   ShowAllComments,
 } = require("./comments");
 const searchBlogs = require("./searchBlogs");
+const uploadThumbnail = require("../users/thumbnail");
 
 // Search route should be placed before other routes that use path parameters
 router.get(
@@ -34,6 +35,13 @@ router.get(
 
 // GET all blogs route
 router.get("/", authenticateApiKey, checkAuthenticated, ShowAllBlogs);
+
+router.post(
+  "/upload-thumbnail",
+  authenticateApiKey,
+  checkAuthenticated,
+  uploadThumbnail,
+);
 
 // GET all blogs by user route
 router.get(

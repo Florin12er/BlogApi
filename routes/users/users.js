@@ -22,7 +22,6 @@ const Settings = require("./Setting.js");
 const Upload = require("./upload.js");
 const Guest = require("./Guest.js");
 const { GetApiKey, GenerateApiKey } = require("../apiKey/ApiKey.js");
-const uploadThumbnail = require("./thumbnail.js");
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -69,12 +68,6 @@ router.post(
   checkAuthenticated,
   upload.single("profilePicture"),
   Upload,
-);
-router.post(
-  "/upload-thumbnail",
-  authenticateApiKey,
-  checkAuthenticated,
-  uploadThumbnail,
 );
 
 // Blog like/unlike routes (protected)
