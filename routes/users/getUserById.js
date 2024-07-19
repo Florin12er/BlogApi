@@ -21,10 +21,10 @@ async function GetUserByID(req, res) {
     const user = await getUser(id); // Call getUser function to fetch user
 
     // Extract necessary fields from user object
-    const { _id, username, email } = user;
+    const { _id, username, email, profilePicture } = user;
 
     // Respond with user object including username and email
-    res.status(200).json({ _id, username, email });
+    res.status(200).json({ _id, username, email, profilePicture });
   } catch (error) {
     console.error(error);
     res.status(404).json({ error: "User not found" }); // Handle errors appropriately
