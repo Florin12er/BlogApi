@@ -1,4 +1,5 @@
-const Blog = require("../../models/Blog");
+// searchBlogs.js
+const Blog = require('../../models/Blog');
 
 async function searchBlogs(req, res) {
   try {
@@ -11,11 +12,11 @@ async function searchBlogs(req, res) {
 
     const blogs = await Blog.find(
       { $text: { $search: query } },
-      { score: { $meta: "textScore" } },
+      { score: { $meta: "textScore" } }
     )
-      .sort({ score: { $meta: "textScore" } })
-      .skip(skip)
-      .limit(Number(limit));
+    .sort({ score: { $meta: "textScore" } })
+    .skip(skip)
+    .limit(Number(limit));
 
     const total = await Blog.countDocuments({ $text: { $search: query } });
 
@@ -23,13 +24,13 @@ async function searchBlogs(req, res) {
       blogs,
       currentPage: Number(page),
       totalPages: Math.ceil(total / limit),
-      totalBlogs: total,
+      totalBlogs: total
     });
   } catch (error) {
-    console.error("Error searching blogs:", error);
-    res
-      .status(500)
-      .json({ message: "An error occurred while searching blogs" });
+    console.error('Error searching blogs:', error);
+    res.status(500).json({ message: "An error occurred while searching blogs" });
   }
 }
+
 module.exports = searchBlogs;
+
