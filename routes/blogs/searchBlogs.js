@@ -1,7 +1,7 @@
 // searchBlogs.js
 const Blog = require('../../models/Blog');
 
-async function searchBlogs(req, res) {
+const searchBlogs = async (req, res) => {
   try {
     const { query, page = 1, limit = 10 } = req.query;
     if (!query) {
@@ -30,7 +30,7 @@ async function searchBlogs(req, res) {
     console.error('Error searching blogs:', error);
     res.status(500).json({ message: "An error occurred while searching blogs" });
   }
-}
+};
 
 module.exports = searchBlogs;
 
