@@ -17,9 +17,12 @@ const blogSchema = new Schema({
   likes: [{ type: Schema.Types.ObjectId, ref: "User" }],
   dislikes: [{ type: Schema.Types.ObjectId, ref: "User" }],
   comments: [commentSchema], // Added comments array
+  thumbnail: { type: String }, // Add this line for the thumbnail
 });
+
 blogSchema.index({ title: 'text', content: 'text', author: 'text' });
 
 const Blog = mongoose.model("Blog", blogSchema);
 
 module.exports = Blog;
+
