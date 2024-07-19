@@ -26,7 +26,7 @@ const { GetApiKey, GenerateApiKey } = require("../apiKey/ApiKey.js");
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, "../../plublic/uploads"));
+    cb(null, path.join(__dirname, "../../public/uploads"));
   },
   filename: (req, file, cb) => {
     cb(null, `${req.user.id}-${Date.now()}${path.extname(file.originalname)}`);
