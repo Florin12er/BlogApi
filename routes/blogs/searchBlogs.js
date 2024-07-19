@@ -11,13 +11,17 @@ async function searchBlogs(req, res) {
     const skip = (page - 1) * limit;
     const searchRegex = new RegExp(query, 'i');
 
+    // Define sort options based on user input
     let sortOptions = {};
     if (sortBy === 'relevance') {
-      sortOptions = { score: { $meta: "textScore" } };
+      // Note: Relevance sorting is not applicable here since we're not using text search
+      // You can implement a custom scoring mechanism if needed
+      sortOptions = { createdAt: sortOrder === 'asc' ? 1 : -1 }; // Fallback to date sorting
     } else if (sortBy === 'date') {
       sortOptions = { createdAt: sortOrder === 'asc' ? 1 : -1 };
     }
 
+    // Construct the search query
     const searchQuery = {
       $or: [
         { title: searchRegex },
@@ -26,14 +30,16 @@ async function searchBlogs(req, res) {
       ]
     };
 
+    // Execute the search
     const blogs = await Blog.find(searchQuery)
-      .select({ score: { $meta: "textScore" } })
       .sort(sortOptions)
       .skip(skip)
       .limit(Number(limit));
 
+    // Count the total number of documents matching the search query
     const total = await Blog.countDocuments(searchQuery);
 
+    // Send the response
     res.json({
       blogs,
       currentPage: Number(page),
