@@ -58,7 +58,7 @@ const Blogs = require("./routes/blogs/blogs.js");
 
 app.use("/user", Users);
 app.use("/blog", Blogs);
-app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'plublic/uploads')));
 
 // Helper function for authentication
 const authenticateAndRedirect = (strategy) => (req, res, next) => {
