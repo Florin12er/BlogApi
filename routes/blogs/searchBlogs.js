@@ -18,29 +18,21 @@ async function searchBlogs(req, res) {
       sortOptions = { createdAt: sortOrder === 'asc' ? 1 : -1 };
     }
 
-    const blogs = await Blog.find(
-      {
-        $or: [
-          { $text: { $search: query } },
-          { title: searchRegex },
-          { content: searchRegex },
-          { tags: searchRegex }
-        ]
-      },
-      { score: { $meta: "textScore" } }
-    )
-    .sort(sortOptions)
-    .skip(skip)
-    .limit(Number(limit));
-
-    const total = await Blog.countDocuments({
+    const searchQuery = {
       $or: [
-        { $text: { $search: query } },
         { title: searchRegex },
         { content: searchRegex },
         { tags: searchRegex }
       ]
-    });
+    };
+
+    const blogs = await Blog.find(searchQuery)
+      .select({ score: { $meta: "textScore" } })
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(Number(limit));
+
+    const total = await Blog.countDocuments(searchQuery);
 
     res.json({
       blogs,
