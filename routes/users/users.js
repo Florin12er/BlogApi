@@ -1,13 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const path = require("path");
-const crypto = require("crypto");
-
 const PostLogin = require("./login.js");
 const { PostRegister } = require("./register.js");
-const User = require("../../models/User.js");
 const LogOut = require("./logout.js");
 const { Reset, requestPasswordReset } = require("./reset.js");
 const ShowAllUsers = require("./showAll.js");
@@ -18,11 +14,14 @@ const {
   authenticateApiKey,
   checkGuest,
 } = require("../../middleware/checks.js");
+
 const GetUserByID = require("./getUserById.js");
 const { Like, Unlike, LikeCount } = require("./Likes.js");
 const { Dislike, Undislike, DislikeCount } = require("./Dislikes.js");
 const Settings = require("./Setting.js");
 const Upload = require("./upload.js");
+const Guest = require("./Guest.js");
+const { GetApiKey, GenerateApiKey } = require("../apiKey/ApiKey.js");
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -35,11 +34,6 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// Utility function to generate an API key
-const generateApiKey = () => {
-  return crypto.randomBytes(32).toString("hex");
-};
-
 // Route to show all users (protected)
 router.get("/", checkAuthenticated, ShowAllUsers);
 
@@ -50,28 +44,7 @@ router.post("/register", checkNotAuthenticated, PostRegister);
 router.post("/login", checkNotAuthenticated, PostLogin);
 
 // Route to create a guest user
-router.post("/guest", async (req, res) => {
-  try {
-    // Create a new guest user
-    const guestUser = new User({
-      username: `guest_${Math.floor(Math.random() * 100000)}`,
-      email: `guest_${Math.floor(Math.random() * 100000)}@example.com`,
-      isGuest: true,
-    });
-
-    await guestUser.save();
-
-    // Generate a JWT token for the guest user
-    const token = jwt.sign({ userId: guestUser._id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
-
-    res.json({ token, userId: guestUser._id });
-  } catch (error) {
-    console.error("Error creating guest user:", error);
-    res.status(500).json({ error: "Failed to create guest user" });
-  }
-});
+router.post("/guest", checkNotAuthenticated, Guest);
 
 // Logout route (protected or optional check)
 router.delete("/logout", checkAuthenticated, LogOut);
@@ -153,33 +126,8 @@ router.patch(
   Settings,
 );
 // get the api key
-
-router.get("/get-api-key", checkAuthenticated, async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-    const decryptedApiKey = user.decryptText(user.apiKey); // Decrypt API key
-    res.status(200).json({ apiKey: decryptedApiKey }); // Respond with decrypted API key
-  } catch (error) {
-    console.error("Error retrieving API key:", error);
-    res.status(500).json({ error: "Failed to retrieve API key" });
-  }
-});
+router.get("/get-api-key", checkAuthenticated, GetApiKey);
 // Generate API key route (protected)
-router.post("/generate-api-key", checkAuthenticated, async (req, res) => {
-  try {
-    const apiKey = generateApiKey();
-    const encryptedApiKey = req.user.encryptText(apiKey); // Encrypt the API key
-    console.log("Encrypted API Key:", encryptedApiKey); // Add logging
-    req.user.apiKey = encryptedApiKey;
-    await req.user.save();
-    res.status(200).json({ apiKey });
-  } catch (error) {
-    console.error("Error generating API key:", error);
-    res.status(500).json({ error: "Failed to generate API key" });
-  }
-});
+router.post("/generate-api-key", checkAuthenticated, GenerateApiKey);
 
 module.exports = router;
