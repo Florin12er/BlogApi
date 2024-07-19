@@ -72,7 +72,7 @@ blogInteractionRoutes.post("/:id/undislike", Undislike);
 blogInteractionRoutes.get("/:id/likes/count", LikeCount);
 blogInteractionRoutes.get("/:id/dislikes/count", DislikeCount);
 
-router.use("/blog", blogInteractionRoutes);
+router.use("/", blogInteractionRoutes);
 
 module.exports = router;
 
