@@ -15,7 +15,7 @@ async function deleteBlog(req, res) {
     // Remove the blog
     await blog.deleteOne();
 
-    return res.json({ message: "Blog deleted successfully" });
+    return res.status(204).send(); // Return 204 No Content status code
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
