@@ -1,6 +1,5 @@
 const express = require("express");
 const router = express.Router();
-
 // Middleware for checking authentication
 const {
   checkAuthenticated,
@@ -11,7 +10,6 @@ const AddBlog = require("./addBlog");
 const ShowAllBlogs = require("./showAllBlogs");
 const ShowAllUserBlogs = require("./showAllBlogsUser");
 const DeleteBlog = require("./deleteBlog");
-const UpdateBlog = require("./updateBlog");
 const GetUserBlogById = require("./getBlogById");
 const User = require("../../models/User");
 const {
@@ -22,6 +20,7 @@ const {
 } = require("./comments");
 const searchBlogs = require("./searchBlogs");
 const uploadThumbnail = require("../users/thumbnail");
+const { UpdateBlog, upload } = require("./updateBlog");
 
 // Search route should be placed before other routes that use path parameters
 router.get(
@@ -40,8 +39,9 @@ router.post(
   "/upload-thumbnail",
   authenticateApiKey,
   checkAuthenticated,
-  uploadThumbnail,
+    uploadThumbnail,
 );
+
 
 // GET all blogs by user route
 router.get(
@@ -61,7 +61,7 @@ router.get("/:id", authenticateApiKey, checkAuthenticated, GetUserBlogById);
 router.delete("/:id", authenticateApiKey, checkAuthenticated, DeleteBlog);
 
 // PUT update blog route
-router.put("/:id", authenticateApiKey, checkAuthenticated, UpdateBlog);
+router.put("/:id", authenticateApiKey, checkAuthenticated, upload.single('thumbnail'), UpdateBlog);
 
 // POST a new comment to a blog
 router.post(
