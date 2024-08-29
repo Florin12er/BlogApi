@@ -1,7 +1,6 @@
 const express = require("express");
 const path = require("path");
 const app = express();
-const User = require("./models/User.js");
 const cors = require("cors");
 const methodOverride = require("method-override");
 const mongoose = require("mongoose");
