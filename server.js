@@ -13,7 +13,16 @@ const session = require("express-session");
 require("dotenv").config();
 
 const corsOptions = {
-  origin: true,
+  origin: [
+    "https://blog-maker-two.vercel.app",
+    "http://localhost:5174",
+    "http://localhost:5173",
+    "https://blog-api-one-neon.vercel.app",
+    "http://localhost:3000",
+    "https://blogs-florin12er-florin12ers-projects.vercel.app",
+    "https://blogs-nine-steel.vercel.app",
+    "https://blogapi-production-fb2f.up.railway.app",
+  ],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   credentials: true,
   allowedHeaders: ["Content-Type", "Authorization", "x-api-key"],
